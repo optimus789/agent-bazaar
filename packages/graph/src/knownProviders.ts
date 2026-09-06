@@ -3,7 +3,7 @@ import type { ProviderListing } from '@bazaar/shared';
 /**
  * TEMPORARY FALLBACK (added 2026-09-06, still needed 2026-09-07): Agent0's
  * registrationFile crawl has not completed for our two real, on-chain
- * registered agents — confirmed empty well over 12 hours after registration,
+ * registered agents — confirmed empty well over 24 hours after registration,
  * after a setAgentURI() re-trigger (a real on-chain call), and after fixing
  * a real 404 in the tokenURI the crawler would have hit. This is stuck on
  * The Graph's indexing side, not a discovery bug in this repo: `listAgents`
@@ -15,6 +15,13 @@ import type { ProviderListing } from '@bazaar/shared';
  * own registration files already advertise on-chain, rather than duplicating
  * it. Remove once `registrationFile` resolves via a real subgraph query —
  * see docs/STATUS.md WP06/WP07 for tracking.
+ *
+ * `baseUrl` respects `PROVIDER_HEDERA_URL`/`PROVIDER_ARC_URL` when set (same
+ * env vars the dashboard already uses — see apps/dashboard/lib/env.ts),
+ * falling back to localhost for local dev. Without this, a `--live` buyer-
+ * agent run always targeted `localhost:4021`/`4022` regardless of what was
+ * in `.env`, so it could never reach the real deployed providers even when
+ * the user had correctly set the Railway URLs for the dashboard's own use.
  */
 export const KNOWN_PROVIDERS_FALLBACK: ProviderListing[] = [
   {
@@ -23,9 +30,9 @@ export const KNOWN_PROVIDERS_FALLBACK: ProviderListing[] = [
     agentId: '9179',
     owner: '0x66603CFFcDbF3b39785afD82F6F396a13C5C605a',
     name: 'Bazaar Market Intel (Hedera)',
-    description: 'Sells 4 paid endpoints via x402. | rail: hedera | catalog: http://localhost:4021/catalog',
+    description: `Sells 4 paid endpoints via x402. | rail: hedera | catalog: ${process.env.PROVIDER_HEDERA_URL ?? 'http://localhost:4021'}/catalog`,
     rail: 'hedera',
-    baseUrl: 'http://localhost:4021',
+    baseUrl: process.env.PROVIDER_HEDERA_URL ?? 'http://localhost:4021',
     routes: [],
     x402Support: true,
     totalFeedback: 0,
@@ -37,9 +44,9 @@ export const KNOWN_PROVIDERS_FALLBACK: ProviderListing[] = [
     agentId: '9180',
     owner: '0x66603CFFcDbF3b39785afD82F6F396a13C5C605a',
     name: 'Bazaar Task Runner (Arc)',
-    description: 'Sells 2 paid endpoints via x402. | rail: arc | catalog: http://localhost:4022/catalog',
+    description: `Sells 2 paid endpoints via x402. | rail: arc | catalog: ${process.env.PROVIDER_ARC_URL ?? 'http://localhost:4022'}/catalog`,
     rail: 'arc',
-    baseUrl: 'http://localhost:4022',
+    baseUrl: process.env.PROVIDER_ARC_URL ?? 'http://localhost:4022',
     routes: [],
     x402Support: true,
     totalFeedback: 0,
