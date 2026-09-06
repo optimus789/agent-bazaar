@@ -92,18 +92,24 @@ export interface ListAgentsOptions {
   x402Only?: boolean;
 }
 
-/** Run the same document on every requested chain and merge, preserving chain provenance. */
+/**
+ * Run the same document on every requested chain and merge, preserving chain
+ * provenance. One chain's subgraph being unhealthy (e.g. a decentralized-network
+ * indexer returning `indexing_error`) must not take down discovery on the other
+ * chains — each chain query is isolated so a bad Ethereum Sepolia indexer, say,
+ * doesn't prevent Base Sepolia agents from being discovered.
+ */
 export async function listAgents(client: GraphClient, opts: ListAgentsOptions = {}): Promise<ProviderListing[]> {
   const chains = opts.chains ?? (['base-sepolia', 'eth-sepolia'] as Agent0Chain[]);
   const first = opts.first ?? 100;
   const x402Only = opts.x402Only ?? true;
-  const results = await Promise.all(
+  const results = await Promise.allSettled(
     chains.map(async (chain) => {
       const data = await client.query<{ agents: RawAgent[] }>(agent0SubgraphId(chain), AGENTS_QUERY, { first, skip: 0 });
       return data.agents.map((a) => toListing(a, chain));
     }),
   );
-  const merged = results.flat();
+  const merged = results.flatMap((r) => (r.status === 'fulfilled' ? r.value : []));
   return x402Only ? merged.filter((l) => l.x402Support) : merged;
 }
 
