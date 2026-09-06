@@ -54,8 +54,12 @@ export function makeDiscoverTool(graph: GraphClient, fetchImpl: typeof fetch = f
       capability: z.string().optional().describe('optional free-text filter, e.g. "risk brief" or "summarise" — matched against provider name/description'),
     }),
     execute: async ({ capability }) => {
-      let listings = await listAgents(graph, { x402Only: true });
-      if (listings.length === 0) listings = AGENT0_CRAWL_FALLBACK;
+      const realListings = await listAgents(graph, { x402Only: true });
+      const knownIds = new Set(realListings.map((l) => l.id));
+      // Merge in our own agents only if Agent0's crawl hasn't surfaced them yet
+      // (see AGENT0_CRAWL_FALLBACK above) — real listings from the subgraph always win.
+      const missingOwn = AGENT0_CRAWL_FALLBACK.filter((l) => !knownIds.has(l.id));
+      const listings = [...realListings, ...missingOwn];
       const hydrated = await hydrateCatalogs(listings, fetchImpl);
       const filtered = capability
         ? hydrated.filter((l) => `${l.name} ${l.description}`.toLowerCase().includes(capability.toLowerCase()))
