@@ -13,7 +13,12 @@
       "endpoint": "http://localhost:4022"
     }
   ],
-  "registrations": [],
+  "registrations": [
+    {
+      "agentRegistry": "eip155:84532:0x8004A818BFB912233c491871b3d84c89A494BD9e",
+      "agentId": "9180"
+    }
+  ],
   "supportedTrust": [
     "reputation"
   ],
@@ -21,5 +26,5 @@
   "mcpEndpoint": null,
   "a2aEndpoint": "http://localhost:4022",
   "ens": null,
-  "did": "uaid:aid:2C2gNfttzNAfQuEPa3EU3tT9gDophf6R1VEbNJVKSL1tgCbL3jwAZK1BMt5fMnVaVe;uid=0;registry=bazaar;proto=x402;nativeId=eip155:5042002:0xPROVIDER_ADDRESS"
+  "did": "uaid:aid:4kjMhDmPCMhGsBSY3Y22VQKdbxVprazTJPsrufphfRC82y2u3xtkaxuaV2RAtN1WoW;uid=0;registry=bazaar;proto=x402;nativeId=eip155:5042002:0xc056c13f5cAb87365a9e0DB957A61805218f88A0"
 }

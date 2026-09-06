@@ -13,7 +13,16 @@
       "endpoint": "http://localhost:4021"
     }
   ],
-  "registrations": [],
+  "registrations": [
+    {
+      "agentRegistry": "eip155:84532:0x8004A818BFB912233c491871b3d84c89A494BD9e",
+      "agentId": "9179"
+    },
+    {
+      "agentRegistry": "eip155:296:0x8004A818BFB912233c491871b3d84c89A494BD9e",
+      "agentId": "109"
+    }
+  ],
   "supportedTrust": [
     "reputation"
   ],
@@ -21,5 +30,5 @@
   "mcpEndpoint": null,
   "a2aEndpoint": "http://localhost:4021",
   "ens": null,
-  "did": "uaid:aid:7UCg3f3TiDUxtC35kUzYdHwftFmXGCkmMBJBDWc7wFRw9a6FXqT7zKcVmjscBpt8R7;uid=0;registry=bazaar;proto=x402;nativeId=hedera:testnet:0.0.PROVIDER_ACCOUNT_ID"
+  "did": "uaid:aid:3mQ4HmN54n2wApSAp2T1QKdP4ohpb1wanaoDSU778ostXWjg7evzkM6xtaujXjWChX;uid=0;registry=bazaar;proto=x402;nativeId=hedera:testnet:0.0.10392781"
 }
