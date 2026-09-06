@@ -2,7 +2,7 @@
 import 'dotenv/config';
 import { writeFile, mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { loadEnv, requireEnv } from '@bazaar/shared';
+import { loadEnv, requireEnv, jsonlLoggerWithPostgres, PostgresJsonlLog } from '@bazaar/shared';
 import { fixtureClient, graphClientFromEnv } from '@bazaar/graph';
 import { runAgent } from './agent.js';
 import { modelFromEnv } from './model.js';
@@ -45,7 +45,15 @@ async function main() {
   const graphRail = env.MOCK ? makeMockGraphRail(graphClient) : makeGraphRail({ privateKey: requireEvmKey(env), env: env.X402_ENV });
   const buyerPrivateKeyEvm = env.MOCK ? MOCK_BUYER_EVM_KEY : requireEvmKey(env);
 
-  const result = await runAgent(task, { model, graphClient, hederaRail, arcRail, graphRail, buyerPrivateKeyEvm, budgetUsd: budget });
+  // Postgres-backed decision log when DATABASE_URL is set — a Railway-run
+  // buyer-agent is its own container with its own disk, invisible to the
+  // dashboard service's local data/buyer.jsonl; sharing one Postgres table
+  // (same instance provider-arc already uses, different table) is what makes
+  // a live run show up on the dashboard's /agent page. See docs/STATUS.md WP13.
+  const pgLog = env.DATABASE_URL ? await PostgresJsonlLog.connect(env.DATABASE_URL) : undefined;
+  const log = jsonlLoggerWithPostgres('buyer', pgLog);
+
+  const result = await runAgent(task, { model, graphClient, hederaRail, arcRail, graphRail, buyerPrivateKeyEvm, budgetUsd: budget, log });
 
   console.log(result.finalText);
   console.log(`\nbudget: spent $${result.ledger.spentUsd.toFixed(6)} of $${result.ledger.budgetUsd.toFixed(6)} (${result.steps} steps)`);

@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { generateText, stepCountIs, type LanguageModel, type ToolSet } from 'ai';
-import { jsonlLogger } from '@bazaar/shared';
+import { jsonlLogger, jsonlLoggerWithPostgres, PostgresJsonlLog } from '@bazaar/shared';
 import { BudgetLedger } from './ledger.js';
 import { makeDiscoverTool } from './tools/discover.js';
 import { rankTool } from './tools/rank.js';
