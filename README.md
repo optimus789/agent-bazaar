@@ -4,6 +4,8 @@ An open marketplace where agents **sell** services behind HTTP 402 paywalls, **p
 
 Both halves of the agent economy in one repo: a buyer that pays, and sellers that earn.
 
+**Live demo:** https://dashboard-production-e04a.up.railway.app — real testnet providers, real on-chain data, no seed fixtures.
+
 ## How it works
 
 ```

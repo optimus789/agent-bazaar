@@ -96,4 +96,11 @@ Record only what was actually run. Every entry needs a date, network, and a link
   - ⚠️ Known limitation, not fixed: `/seller`'s "Total earned (recorded)" reads `provider-arc`'s in-memory `Ledger`, which resets on every server restart (a pre-existing design choice, not new) — after we restarted the server mid-session it correctly showed $0/0 payments even though `data/provider-arc-payments.jsonl` (used by `/payments`) still had all 12 historical entries. Acceptable for now: the label already implies session scope, and the real Gateway balance shown alongside it is the actual source of truth for money, but a live demo should avoid restarting `provider-arc` between opening `/seller` and the buyer's first purchase.
 
 ## WP08 arc mainnet
-- (fill in after 16 Sept)
+- (fill in after 16 Sept) — out of scope for this submission; testnet-only per user decision.
+
+## Public deployment (WP09 follow-up)
+- 2026-09-07: `provider-hedera`, `provider-arc`, and `dashboard` deployed to Railway (pnpm monorepo, one project, three services + an intentionally-idle `buyer-agent` service with restart policy "Never" so it can't accidentally auto-run and spend real funds/API credits). Verified public:
+  - `provider-hedera`: https://provider-hedera-production.up.railway.app/health — real `payTo`/`facilitator`, `mock: false`
+  - `provider-arc`: https://provider-arc-production.up.railway.app/health — real seller address, real live Gateway balance
+  - `dashboard`: https://dashboard-production-e04a.up.railway.app — all 5 pages (`/`, `/provider/[chain]/[agentId]`, `/agent`, `/payments`, `/seller`) return 200; marketplace correctly lists both real registered providers among the 16 real Agent0-registered agents on Base Sepolia.
+  - Code change required for this: both provider servers and the dashboard now bind to `process.env.PORT` when set (Railway/Render/Fly convention), falling back to the existing `.env`-configured port for local dev.
