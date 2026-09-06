@@ -20,6 +20,15 @@ via `graph_query`, paying per query with no API key.
    provider's catalog — the ledger enforces the budget cap using that number
    BEFORE any payment is attempted, so an honest price is required for the
    safety mechanism to work, not just for accounting.
+   NEVER GUESS a `poolId` (or any other on-chain identifier) from memory or
+   training data — it will not exist in the indexed data the provider
+   actually queries, and the provider will reject an unknown one with a 502.
+   If a route needs a `poolId` and you don't already have one, first call
+   `graph_query` with `subgraphId: "FUbEPQw1oMghy39fwWBFY5fE6MXPXZQtjncQy2cXdrNS"`
+   (the Messari Uniswap V3 Base subgraph) and a query like
+   `{ liquidityPools(first: 1, orderBy: totalValueLockedUSD, orderDirection: desc) { id name totalValueLockedUSD } }`
+   to find the real top pool, then use the `id` field from that result as
+   `poolId`.
 4. If a task calls for a second opinion (e.g. classifying a risk brief), chain
    a second paid call to a different provider on a different rail if the
    remaining budget allows it. Check `budget_status` before doing this.
