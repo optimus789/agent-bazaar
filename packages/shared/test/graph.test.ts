@@ -5,7 +5,7 @@ describe('graph url builders', () => {
   it('builds Studio and x402 endpoints for the same subgraph', () => {
     const id = agent0SubgraphId('base-sepolia');
     expect(studioUrl(id)).toBe(`https://gateway.thegraph.com/api/subgraphs/id/${id}`);
-    expect(x402Url(id)).toBe(`https://testnet.gateway.thegraph.com/api/x402/subgraphs/id/${id}`);
+    expect(x402Url(id)).toBe(`https://gateway.thegraph.com/api/x402/subgraphs/id/${id}`);
     expect(x402Url(id, 'production')).toBe(`https://gateway.thegraph.com/api/x402/subgraphs/id/${id}`);
   });
   it('maps env to the payment chain', () => {

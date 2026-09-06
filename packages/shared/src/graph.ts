@@ -8,8 +8,16 @@ export const AGENT0_SUBGRAPHS = {
 export type Agent0Chain = keyof typeof AGENT0_SUBGRAPHS;
 
 export const GRAPH_STUDIO_GATEWAY = 'https://gateway.thegraph.com/api';
+/**
+ * `testnet.gateway.thegraph.com` does not exist (confirmed live: DNS
+ * resolution fails). There is one x402 gateway host — `gateway.thegraph.com/api/x402`
+ * — for both networks; testnet vs production is which chain the buyer's
+ * client pays on, reflected in the 402 response's own `accepts[].network`.
+ * Found live during WP06 when the buyer agent's graph_query tool failed
+ * with a bare "fetch failed" against the old testnet subdomain.
+ */
 export const GRAPH_X402_GATEWAY = {
-  testnet: { base: 'https://testnet.gateway.thegraph.com/api/x402', chain: 'base-sepolia' as const },
+  testnet: { base: 'https://gateway.thegraph.com/api/x402', chain: 'base-sepolia' as const },
   production: { base: 'https://gateway.thegraph.com/api/x402', chain: 'base' as const },
 } as const;
 
