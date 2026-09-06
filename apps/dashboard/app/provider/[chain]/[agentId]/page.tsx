@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { fixtureClient, getAgent, StudioClient } from '@bazaar/graph';
+import { fixtureClient, getAgent, knownProviderFallback, StudioClient } from '@bazaar/graph';
 import type { Agent0Chain } from '@bazaar/shared';
 import { GRAPH_API_KEY, MOCK } from '@/lib/env';
 import { fetchCatalog, fetchHealth, PROVIDERS } from '@/lib/providers';
@@ -15,8 +15,13 @@ export default async function ProviderPage({ params }: { params: Promise<{ chain
   if (!VALID_CHAINS.includes(chain as Agent0Chain)) notFound();
 
   const client = MOCK || !GRAPH_API_KEY ? fixtureClient() : new StudioClient(GRAPH_API_KEY);
-  const listing = await getAgent(client, chain as Agent0Chain, agentId).catch(() => undefined);
-  if (!listing) notFound();
+  const rawListing = await getAgent(client, chain as Agent0Chain, agentId).catch(() => undefined);
+  if (!rawListing) notFound();
+  // Agent0's registrationFile crawl is still stuck for our own agents (see
+  // packages/graph/src/knownProviders.ts) — a listing that exists on-chain but
+  // has no x402Support/rail/name yet falls back to the same data our own
+  // registration files already advertise, rather than showing "agent 9179 · Graph".
+  const listing = rawListing.x402Support ? rawListing : (knownProviderFallback(rawListing.id) ?? rawListing);
 
   const baseUrl = listing.rail === 'hedera' ? PROVIDERS.hedera : listing.rail === 'arc' ? PROVIDERS.arc : listing.baseUrl;
   const [health, catalog, allPayments] = await Promise.all([fetchHealth(baseUrl), fetchCatalog(baseUrl), unifiedPayments()]);

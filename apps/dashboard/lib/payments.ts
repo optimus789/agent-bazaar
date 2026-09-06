@@ -49,7 +49,23 @@ export async function unifiedPayments(): Promise<UnifiedPayment[]> {
   }
   for (const l of providerHedera) {
     if (l.kind !== 'paid.request') continue;
-    out.push({ ts: l.ts, rail: 'hedera', side: 'provider-hedera', route: str(l.route), txId: str(l.txId), network: str(l.network) });
+    // `amount`/`asset` come straight from apps/provider-hedera/src/server.ts's
+    // withReceipt: when asset === 'USDC' amount is a "$0.002"-style price
+    // string (parseable directly); for HBAR routes amount is instead a
+    // tinybars amount with no USD rate available here, so show it as-is.
+    const asset = str(l.asset);
+    let amountUsd: number | undefined;
+    let displayAsset = asset;
+    if (asset === 'USDC' && typeof l.amount === 'string') {
+      try {
+        amountUsd = parseUsdPrice(l.amount);
+      } catch {
+        amountUsd = undefined;
+      }
+    } else if (asset && asset !== '?') {
+      displayAsset = `${l.amount} tinybars ${asset}`;
+    }
+    out.push({ ts: l.ts, rail: 'hedera', side: 'provider-hedera', route: str(l.route), amountUsd, asset: displayAsset, txId: str(l.txId), network: str(l.network) });
   }
   for (const l of providerHederaReceipts) {
     if (l.kind !== 'hcs.receipt') continue;

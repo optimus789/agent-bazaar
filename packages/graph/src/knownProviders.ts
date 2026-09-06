@@ -53,3 +53,8 @@ export function withKnownProvidersFallback(realListings: ProviderListing[]): Pro
   const missing = KNOWN_PROVIDERS_FALLBACK.filter((l) => !knownIds.has(l.id));
   return [...realListings, ...missing];
 }
+
+/** Single-listing counterpart to withKnownProvidersFallback, for pages that fetch one agent by id. */
+export function knownProviderFallback(id: string): ProviderListing | undefined {
+  return KNOWN_PROVIDERS_FALLBACK.find((l) => l.id === id);
+}

@@ -82,7 +82,11 @@ export function createApp(deps: AppDeps): Express {
       /* best effort */
     }
     const rc = await deps.receipts.publish({ route, payer, amount, asset, network: HEDERA_X402_NETWORK_TESTNET, txId, briefHash: bodyHash, usage });
-    await log.write({ kind: 'paid.request', route, txId, ...rc, usage });
+    // amount/asset are logged locally even though the receipt of record lives
+    // on the real HCS topic in live mode (HcsReceiptSink writes on-chain, not
+    // to a local file) — the dashboard needs a fast local source for the
+    // payments page and reads this file, not the mirror node, per request.
+    await log.write({ kind: 'paid.request', route, txId, amount, asset, payer, ...rc, usage });
   };
 
   async function poolBriefHandler(req: Request, res: Response, deep: boolean) {
