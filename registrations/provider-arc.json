@@ -1,0 +1,25 @@
+{
+  "type": "AgentCard",
+  "name": "Bazaar Task Runner (Arc)",
+  "description": "Sells 2 paid endpoints via x402. | rail: arc | catalog: http://localhost:4022/catalog",
+  "image": null,
+  "services": [
+    {
+      "name": "x402",
+      "endpoint": "http://localhost:4022/catalog"
+    },
+    {
+      "name": "A2A",
+      "endpoint": "http://localhost:4022"
+    }
+  ],
+  "registrations": [],
+  "supportedTrust": [
+    "reputation"
+  ],
+  "x402Support": true,
+  "mcpEndpoint": null,
+  "a2aEndpoint": "http://localhost:4022",
+  "ens": null,
+  "did": "uaid:aid:2C2gNfttzNAfQuEPa3EU3tT9gDophf6R1VEbNJVKSL1tgCbL3jwAZK1BMt5fMnVaVe;uid=0;registry=bazaar;proto=x402;nativeId=eip155:5042002:0xPROVIDER_ADDRESS"
+}

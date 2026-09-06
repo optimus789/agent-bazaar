@@ -1,0 +1,29 @@
+{
+  "_note": "SYNTHETIC fixture for offline tests.",
+  "agents": [
+    {
+      "id": "11155111:42",
+      "chainId": "11155111",
+      "agentId": "42",
+      "owner": "0x8888888888888888888888888888888888888888",
+      "createdAt": "1756500000",
+      "totalFeedback": "2",
+      "registrationFile": {
+        "name": "Sepolia Intel Rival",
+        "description": "Pool briefs, pricier. | rail: hedera | catalog: http://localhost:4031/catalog",
+        "image": null,
+        "mcpEndpoint": null,
+        "a2aEndpoint": "http://localhost:4031",
+        "supportedTrusts": ["reputation"],
+        "x402Support": true,
+        "ens": "rival.eth",
+        "did": null
+      },
+      "feedback": [
+        { "tag1": "brief", "tag2": "ok", "clientAddress": "0x9999999999999999999999999999999999999999", "value": "4", "valueDecimals": 0 },
+        { "tag1": "brief", "tag2": "ok", "clientAddress": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "value": "5", "valueDecimals": 0 }
+      ],
+      "validations": []
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "name": "dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "dev": "next dev -p 3000 --webpack",
+    "build": "next build --webpack",
+    "start": "next start -p 3000"
+  },
+  "dependencies": {
+    "@bazaar/graph": "workspace:*",
+    "@bazaar/shared": "workspace:*",
+    "next": "16.3.4",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^22.17.0",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "tailwindcss": "^4",
+    "typescript": "^5.9.2"
+  }
+}

@@ -1,0 +1,106 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #f7f7f5;
+  --surface: #ffffff;
+  --surface-2: #eef0ee;
+  --ink: #16181a;
+  --ink-2: #52585c;
+  --ink-3: #868d92;
+  --line: #dde1de;
+  --accent: #0f6e56;
+  --accent-soft: #dff0ea;
+  --good: #2d7a3a;
+  --good-soft: #e0f1e2;
+  --warn: #b56a0c;
+  --warn-soft: #fbeed8;
+  --bad: #b3383a;
+  --bad-soft: #f8e1e1;
+  --hedera: #7c5cff;
+  --hedera-soft: #eee9ff;
+  --arc: #1478d4;
+  --arc-soft: #e3f0fc;
+  --graph: #ba52ce;
+  --graph-soft: #f6e9f9;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #101214;
+    --surface: #17191c;
+    --surface-2: #202327;
+    --ink: #e7eae8;
+    --ink-2: #b0b6ba;
+    --ink-3: #7d848a;
+    --line: #2c3034;
+    --accent: #4fc3a1;
+    --accent-soft: #163b31;
+    --good: #7fcb8a;
+    --good-soft: #1c3320;
+    --warn: #e5a04a;
+    --warn-soft: #3a2b14;
+    --bad: #e57a7c;
+    --bad-soft: #3a2021;
+    --hedera: #b7a4ff;
+    --hedera-soft: #262148;
+    --arc: #6db3ee;
+    --arc-soft: #142a3d;
+    --graph: #e2a0ee;
+    --graph-soft: #3a1f40;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-good: var(--good);
+  --color-good-soft: var(--good-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-bad: var(--bad);
+  --color-bad-soft: var(--bad-soft);
+  --color-hedera: var(--hedera);
+  --color-hedera-soft: var(--hedera-soft);
+  --color-arc: var(--arc);
+  --color-arc-soft: var(--arc-soft);
+  --color-graph: var(--graph);
+  --color-graph-soft: var(--graph-soft);
+  --font-sans: "IBM Plex Sans", -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+
+* {
+  border-color: var(--line);
+}
+
+::selection {
+  background: var(--accent-soft);
+}
+
+a {
+  color: var(--accent);
+}
+
+table {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

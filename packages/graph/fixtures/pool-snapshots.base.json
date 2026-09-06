@@ -1,0 +1,23 @@
+{
+  "_note": "SYNTHETIC fixture. Newest first.",
+  "liquidityPool": {
+    "id": "0xd0b53d9277642d899df5c87a3966a349a798f224",
+    "name": "Uniswap V3 WETH/USDC 0.05%",
+    "inputTokens": [
+      { "id": "0x4200000000000000000000000000000000000006", "symbol": "WETH", "decimals": 18 },
+      { "id": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913", "symbol": "USDC", "decimals": 6 }
+    ],
+    "totalValueLockedUSD": "48213456.12",
+    "fees": [{ "feePercentage": "0.05", "feeType": "FIXED_TRADING_FEE" }]
+  },
+  "liquidityPoolDailySnapshots": [
+    { "timestamp": "1757116800", "totalValueLockedUSD": "48213456.12", "dailyVolumeUSD": "154000000.00" },
+    { "timestamp": "1757030400", "totalValueLockedUSD": "47800000.00", "dailyVolumeUSD": "121000000.00" },
+    { "timestamp": "1756944000", "totalValueLockedUSD": "47100000.00", "dailyVolumeUSD": "98000000.00" },
+    { "timestamp": "1756857600", "totalValueLockedUSD": "46900000.00", "dailyVolumeUSD": "110000000.00" },
+    { "timestamp": "1756771200", "totalValueLockedUSD": "50200000.00", "dailyVolumeUSD": "175000000.00" },
+    { "timestamp": "1756684800", "totalValueLockedUSD": "51000000.00", "dailyVolumeUSD": "140000000.00" },
+    { "timestamp": "1756598400", "totalValueLockedUSD": "52500000.00", "dailyVolumeUSD": "132000000.00" },
+    { "timestamp": "1756512000", "totalValueLockedUSD": "53600000.00", "dailyVolumeUSD": "128000000.00" }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "subgraph": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "--header", "Authorization:${GRAPH_MCP_AUTH}", "https://subgraphs.mcp.thegraph.com/sse"],
+      "env": { "GRAPH_MCP_AUTH": "Bearer ${GRAPH_API_KEY}" }
+    }
+  }
+}

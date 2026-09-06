@@ -1,0 +1,18 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+data/*.jsonl
+data/identity.json
+.next/
+coverage/
+*.tsbuildinfo
+*.log
+.DS_Store
+
+# internal planning / research docs — not for the public repo
+PLAN.md
+plans/
+docs/research/
+git-history.md

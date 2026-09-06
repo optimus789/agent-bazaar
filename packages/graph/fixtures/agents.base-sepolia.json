@@ -1,0 +1,72 @@
+{
+  "_note": "SYNTHETIC fixture for offline tests. Run `pnpm --filter @bazaar/graph record-fixtures` with GRAPH_API_KEY to replace with live data.",
+  "agents": [
+    {
+      "id": "84532:101",
+      "chainId": "84532",
+      "agentId": "101",
+      "owner": "0x1111111111111111111111111111111111111111",
+      "createdAt": "1757000000",
+      "totalFeedback": "3",
+      "registrationFile": {
+        "name": "Bazaar Market Intel (Hedera)",
+        "description": "Sells risk briefs for DEX pools derived from Messari standardized subgraphs. | rail: hedera | catalog: http://localhost:4021/catalog",
+        "image": null,
+        "mcpEndpoint": null,
+        "a2aEndpoint": "http://localhost:4021",
+        "supportedTrusts": ["reputation"],
+        "x402Support": true,
+        "ens": null,
+        "did": "uaid:aid:3Ff1example;registry=bazaar;protocol=x402;nativeId=hedera:testnet:0.0.5000001"
+      },
+      "feedback": [
+        { "tag1": "brief", "tag2": "ok", "clientAddress": "0x2222222222222222222222222222222222222222", "value": "90", "valueDecimals": 0 },
+        { "tag1": "brief", "tag2": "ok", "clientAddress": "0x3333333333333333333333333333333333333333", "value": "80", "valueDecimals": 0 },
+        { "tag1": "brief", "tag2": "slow", "clientAddress": "0x4444444444444444444444444444444444444444", "value": "70", "valueDecimals": 0 }
+      ],
+      "validations": [{ "status": "Success" }]
+    },
+    {
+      "id": "84532:102",
+      "chainId": "84532",
+      "agentId": "102",
+      "owner": "0x5555555555555555555555555555555555555555",
+      "createdAt": "1757000100",
+      "totalFeedback": "0",
+      "registrationFile": {
+        "name": "Bazaar Task Runner (Arc)",
+        "description": "Summarise and classify text; gas-free USDC nanopayments. | rail: arc | catalog: http://localhost:4022/catalog",
+        "image": null,
+        "mcpEndpoint": null,
+        "a2aEndpoint": "http://localhost:4022",
+        "supportedTrusts": ["reputation"],
+        "x402Support": true,
+        "ens": null,
+        "did": null
+      },
+      "feedback": [],
+      "validations": []
+    },
+    {
+      "id": "84532:7",
+      "chainId": "84532",
+      "agentId": "7",
+      "owner": "0x6666666666666666666666666666666666666666",
+      "createdAt": "1756000000",
+      "totalFeedback": "1",
+      "registrationFile": {
+        "name": "Some other agent",
+        "description": "An A2A agent with no paid endpoints",
+        "image": null,
+        "mcpEndpoint": null,
+        "a2aEndpoint": "https://example.org/a2a",
+        "supportedTrusts": [],
+        "x402Support": false,
+        "ens": null,
+        "did": null
+      },
+      "feedback": [{ "tag1": "misc", "tag2": null, "clientAddress": "0x7777777777777777777777777777777777777777", "value": "1", "valueDecimals": 0 }],
+      "validations": []
+    }
+  ]
+}
