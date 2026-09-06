@@ -144,8 +144,11 @@ if (isMain) {
   const env = loadEnv();
   const deps = depsFromEnv(env);
   const app = createApp(deps);
-  app.listen(env.PROVIDER_ARC_PORT, () => {
-    console.log(`provider-arc on http://localhost:${env.PROVIDER_ARC_PORT}  sellerAddress=${deps.sellerAddress}  mock=${env.MOCK}`);
+  // Railway/Render/Fly and most PaaS hosts assign the listen port via $PORT;
+  // fall back to PROVIDER_ARC_PORT for local dev where nothing sets it.
+  const port = process.env.PORT ? Number(process.env.PORT) : env.PROVIDER_ARC_PORT;
+  app.listen(port, () => {
+    console.log(`provider-arc on http://localhost:${port}  sellerAddress=${deps.sellerAddress}  mock=${env.MOCK}`);
     for (const r of CATALOG) console.log(`  ${r.method} ${r.path}  $${r.priceUsd}`);
   });
 }

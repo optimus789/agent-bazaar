@@ -150,8 +150,11 @@ if (isMain) {
   const env = loadEnv();
   const deps = await depsFromEnv(env);
   const app = createApp(deps);
-  app.listen(env.PROVIDER_HEDERA_PORT, () => {
-    console.log(`provider-hedera on http://localhost:${env.PROVIDER_HEDERA_PORT}  payTo=${deps.payTo}  facilitator=${env.X402_TESTNET_FACILITATOR_URL}  mock=${env.MOCK}`);
+  // Railway/Render/Fly and most PaaS hosts assign the listen port via $PORT;
+  // fall back to PROVIDER_HEDERA_PORT for local dev where nothing sets it.
+  const port = process.env.PORT ? Number(process.env.PORT) : env.PROVIDER_HEDERA_PORT;
+  app.listen(port, () => {
+    console.log(`provider-hedera on http://localhost:${port}  payTo=${deps.payTo}  facilitator=${env.X402_TESTNET_FACILITATOR_URL}  mock=${env.MOCK}`);
     for (const r of CATALOG) console.log(`  ${r.method} ${r.path}  $${r.priceUsd}`);
   });
 }
