@@ -1,0 +1,34 @@
+{
+  "type": "AgentCard",
+  "name": "Bazaar Market Intel (Hedera)",
+  "description": "Sells 4 paid endpoints via x402. | rail: hedera | catalog: http://localhost:4021/catalog",
+  "image": null,
+  "services": [
+    {
+      "name": "x402",
+      "endpoint": "http://localhost:4021/catalog"
+    },
+    {
+      "name": "A2A",
+      "endpoint": "http://localhost:4021"
+    }
+  ],
+  "registrations": [
+    {
+      "agentRegistry": "eip155:84532:0x8004A818BFB912233c491871b3d84c89A494BD9e",
+      "agentId": "9179"
+    },
+    {
+      "agentRegistry": "eip155:296:0x8004A818BFB912233c491871b3d84c89A494BD9e",
+      "agentId": "109"
+    }
+  ],
+  "supportedTrust": [
+    "reputation"
+  ],
+  "x402Support": true,
+  "mcpEndpoint": null,
+  "a2aEndpoint": "http://localhost:4021",
+  "ens": null,
+  "did": "uaid:aid:3mQ4HmN54n2wApSAp2T1QKdP4ohpb1wanaoDSU778ostXWjg7evzkM6xtaujXjWChX;uid=0;registry=bazaar;proto=x402;nativeId=hedera:testnet:0.0.10392781"
+}
