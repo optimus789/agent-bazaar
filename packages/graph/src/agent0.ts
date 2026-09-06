@@ -6,8 +6,8 @@ export interface RawFeedback {
   tag1?: string | null;
   tag2?: string | null;
   clientAddress: string;
+  /** The subgraph's `value` field is a `BigDecimal` — already decimal-normalised at index time, no separate valueDecimals field exists. */
   value?: string | number | null;
-  valueDecimals?: number | null;
 }
 
 export interface RawAgent {
@@ -53,7 +53,7 @@ export function averageScore(feedback: RawFeedback[] | null | undefined): number
   const vals = feedback
     .map((f) => {
       if (f.value === null || f.value === undefined) return undefined;
-      const v = Number(f.value) / 10 ** (f.valueDecimals ?? 0);
+      const v = Number(f.value);
       return Number.isFinite(v) ? v : undefined;
     })
     .filter((v): v is number => v !== undefined);

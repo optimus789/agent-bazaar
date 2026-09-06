@@ -20,8 +20,8 @@
         "did": null
       },
       "feedback": [
-        { "tag1": "brief", "tag2": "ok", "clientAddress": "0x9999999999999999999999999999999999999999", "value": "4", "valueDecimals": 0 },
-        { "tag1": "brief", "tag2": "ok", "clientAddress": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "value": "5", "valueDecimals": 0 }
+        { "tag1": "brief", "tag2": "ok", "clientAddress": "0x9999999999999999999999999999999999999999", "value": "4" },
+        { "tag1": "brief", "tag2": "ok", "clientAddress": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "value": "5" }
       ],
       "validations": []
     }

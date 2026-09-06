@@ -27,7 +27,6 @@ export const AGENTS_QUERY = /* GraphQL */ `
         tag2
         clientAddress
         value
-        valueDecimals
       }
       validations(first: 20) {
         status
@@ -46,7 +45,7 @@ export const AGENT_QUERY = /* GraphQL */ `
       createdAt
       totalFeedback
       registrationFile { name description image mcpEndpoint a2aEndpoint supportedTrusts x402Support ens did }
-      feedback(where: { isRevoked: false }, first: 50, orderBy: createdAt, orderDirection: desc) { tag1 tag2 clientAddress value valueDecimals }
+      feedback(where: { isRevoked: false }, first: 50, orderBy: createdAt, orderDirection: desc) { tag1 tag2 clientAddress value }
       validations(first: 20) { status }
     }
   }

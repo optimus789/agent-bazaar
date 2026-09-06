@@ -20,9 +20,9 @@
         "did": "uaid:aid:3Ff1example;registry=bazaar;protocol=x402;nativeId=hedera:testnet:0.0.5000001"
       },
       "feedback": [
-        { "tag1": "brief", "tag2": "ok", "clientAddress": "0x2222222222222222222222222222222222222222", "value": "90", "valueDecimals": 0 },
-        { "tag1": "brief", "tag2": "ok", "clientAddress": "0x3333333333333333333333333333333333333333", "value": "80", "valueDecimals": 0 },
-        { "tag1": "brief", "tag2": "slow", "clientAddress": "0x4444444444444444444444444444444444444444", "value": "70", "valueDecimals": 0 }
+        { "tag1": "brief", "tag2": "ok", "clientAddress": "0x2222222222222222222222222222222222222222", "value": "90" },
+        { "tag1": "brief", "tag2": "ok", "clientAddress": "0x3333333333333333333333333333333333333333", "value": "80" },
+        { "tag1": "brief", "tag2": "slow", "clientAddress": "0x4444444444444444444444444444444444444444", "value": "70" }
       ],
       "validations": [{ "status": "Success" }]
     },
@@ -65,7 +65,7 @@
         "ens": null,
         "did": null
       },
-      "feedback": [{ "tag1": "misc", "tag2": null, "clientAddress": "0x7777777777777777777777777777777777777777", "value": "1", "valueDecimals": 0 }],
+      "feedback": [{ "tag1": "misc", "tag2": null, "clientAddress": "0x7777777777777777777777777777777777777777", "value": "1" }],
       "validations": []
     }
   ]

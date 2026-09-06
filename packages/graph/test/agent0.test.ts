@@ -17,10 +17,9 @@ describe('parseDescription', () => {
 
 describe('averageScore', () => {
   it('normalises 0–1, 0–5 and 0–100 scales to 0–100', () => {
-    expect(averageScore([{ clientAddress: 'a', value: '0.8', valueDecimals: 0 }])).toBeCloseTo(80);
-    expect(averageScore([{ clientAddress: 'a', value: '4', valueDecimals: 0 }, { clientAddress: 'b', value: '5', valueDecimals: 0 }])).toBeCloseTo(90);
-    expect(averageScore([{ clientAddress: 'a', value: '90', valueDecimals: 0 }])).toBe(90);
-    expect(averageScore([{ clientAddress: 'a', value: '9000', valueDecimals: 2 }])).toBe(90);
+    expect(averageScore([{ clientAddress: 'a', value: '0.8' }])).toBeCloseTo(80);
+    expect(averageScore([{ clientAddress: 'a', value: '4' }, { clientAddress: 'b', value: '5' }])).toBeCloseTo(90);
+    expect(averageScore([{ clientAddress: 'a', value: '90' }])).toBe(90);
   });
   it('is undefined with no feedback', () => {
     expect(averageScore([])).toBeUndefined();
