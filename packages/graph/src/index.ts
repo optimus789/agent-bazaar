@@ -4,6 +4,7 @@ export * from './messari.js';
 export * from './fixtures.js';
 export * from './hydrate.js';
 export * from './knownProviders.js';
+export * from './hederaMirror.js';
 export { AGENTS_QUERY, AGENT_QUERY } from './queries/agents.js';
 export { TOP_POOLS_QUERY, POOL_SNAPSHOTS_QUERY } from './queries/messari.js';
 

@@ -114,7 +114,28 @@ export async function listAgents(client: GraphClient, opts: ListAgentsOptions = 
 }
 
 export async function getAgent(client: GraphClient, chain: Agent0Chain, agentId: string | number): Promise<ProviderListing | undefined> {
+  const raw = await getRawAgent(client, chain, agentId);
+  return raw ? toListing(raw, chain) : undefined;
+}
+
+async function getRawAgent(client: GraphClient, chain: Agent0Chain, agentId: string | number): Promise<RawAgent | undefined> {
   const id = `${CHAIN_IDS[chain]}:${agentId}`;
   const data = await client.query<{ agent: RawAgent | null }>(agent0SubgraphId(chain), AGENT_QUERY, { id });
-  return data.agent ? toListing(data.agent, chain) : undefined;
+  return data.agent ?? undefined;
+}
+
+/**
+ * Listing plus the individual, chain-native feedback entries `toListing`
+ * otherwise collapses into just `avgScore`/`totalFeedback` — for a provider
+ * detail page that wants to show each real review (tag, reviewer, score),
+ * not just the average. One query, fully sourced from the Agent0/ERC-8004
+ * subgraph, no local state.
+ */
+export async function getAgentWithFeedback(
+  client: GraphClient,
+  chain: Agent0Chain,
+  agentId: string | number,
+): Promise<{ listing: ProviderListing; feedback: RawFeedback[] } | undefined> {
+  const raw = await getRawAgent(client, chain, agentId);
+  return raw ? { listing: toListing(raw, chain), feedback: raw.feedback ?? [] } : undefined;
 }

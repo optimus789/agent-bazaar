@@ -45,6 +45,12 @@ export default async function SellerPage() {
             <p className="text-xs text-[var(--warn)]">Gateway balance unavailable: {earnings.gateway.error}</p>
           )}
 
+          <p className="text-xs text-[var(--ink-3)]">
+            Gateway balance above is always live from Circle. Circle Nanopayments settle in batches rather than one
+            transaction per payment, so there is no on-chain history to query per payment before a batch settles — the
+            list below is this provider process&apos;s own record and resets if the provider restarts.
+          </p>
+
           <section>
             <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[var(--ink-3)]">Withdraw</h2>
             <Card className="p-4">

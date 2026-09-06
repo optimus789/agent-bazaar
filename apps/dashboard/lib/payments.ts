@@ -1,5 +1,7 @@
-import { parseUsdPrice, type Rail } from '@bazaar/shared';
+import { fetchHederaTokenTransfers } from '@bazaar/graph';
+import { HEDERA_USDC_TESTNET, parseUsdPrice, type Rail } from '@bazaar/shared';
 import { readJsonl, type JsonlLine } from './jsonl.js';
+import { fetchHealth, PROVIDERS } from './providers.js';
 
 export interface UnifiedPayment {
   ts: string;
@@ -22,18 +24,48 @@ function str(v: unknown): string | undefined {
   return typeof v === 'string' ? v : undefined;
 }
 
-/** Every JSONL source in the repo that represents a settled or attempted payment. */
+/**
+ * Real, permanent Hedera testnet transaction history for the provider's own
+ * account, sourced live from the public mirror node — survives a redeploy of
+ * this dashboard's container, unlike the JSONL cache below. Every real
+ * payment is provider <-> buyer, so the provider's own history already
+ * captures every settlement without needing to separately track buyer ids.
+ */
+async function liveHederaPayments(): Promise<UnifiedPayment[]> {
+  const health = await fetchHealth(PROVIDERS.hedera);
+  if (!health?.payTo) return [];
+  try {
+    const transfers = await fetchHederaTokenTransfers(health.payTo, HEDERA_USDC_TESTNET, { limit: 50 });
+    return transfers
+      .filter((t) => t.amount > 0) // provider received (positive leg); the buyer's matching negative leg is the same settlement
+      .map((t) => ({
+        ts: new Date(Number(t.ts.split('.')[0]) * 1000).toISOString(),
+        rail: 'hedera' as const,
+        side: 'provider-hedera' as const,
+        amountUsd: t.amount / 1_000_000,
+        asset: 'USDC',
+        txId: t.txId,
+        network: 'hedera:testnet',
+      }));
+  } catch {
+    // Mirror node hiccup — fall back to the JSONL cache for this render rather than blanking the page.
+    return [];
+  }
+}
+
+/** Every JSONL source in the repo that represents a settled or attempted payment, plus live chain data where available (see docs/STATUS.md WP11). */
 export async function unifiedPayments(): Promise<UnifiedPayment[]> {
-  const [buyerHedera, buyerArc, buyerGraph, providerHedera, providerHederaReceipts, providerArc] = await Promise.all([
+  const [buyerHedera, buyerArc, buyerGraph, providerHedera, providerHederaReceipts, providerArc, liveHedera] = await Promise.all([
     readJsonl('buyer-agent-hedera'),
     readJsonl('arc-buyer'),
     readJsonl('buyer-agent-graph'),
     readJsonl('provider-hedera'),
     readJsonl('provider-hedera-receipts'),
     readJsonl('provider-arc-payments'),
+    liveHederaPayments(),
   ]);
 
-  const out: UnifiedPayment[] = [];
+  const out: UnifiedPayment[] = [...liveHedera];
 
   for (const l of buyerHedera) {
     if (l.kind !== 'hedera.payment') continue;
@@ -92,7 +124,50 @@ export async function unifiedPayments(): Promise<UnifiedPayment[]> {
     out.push({ ts: l.ts, rail: 'arc', side: 'provider-arc', route: str(l.route), amountUsd: num(l.amountUsd), asset: 'USDC', txId: str(l.transaction), network: str(l.network) });
   }
 
-  return out.sort((a, b) => a.ts.localeCompare(b.ts));
+  return dedupeByTxId(out).sort((a, b) => a.ts.localeCompare(b.ts));
+}
+
+/**
+ * Hedera transaction ids appear in two different real string formats
+ * depending on the source: the mirror node's REST API uses dashes
+ * (`0.0.7162784-1788716210-213797949`), while the SDK's own `TransactionId`
+ * stringifies with `@`/`.` (`0.0.7162784@1788716210.213797949`) — same
+ * transaction, different serialisation. Normalise both to one shape so the
+ * dedupe below actually matches them instead of double-counting every real
+ * settlement (found live: without this, `/payments` showed each Hedera
+ * payment twice — once from the live mirror-node read, once from JSONL).
+ */
+function normaliseTxId(txId: string): string {
+  // 0.0.7162784-1788716210-213797949 (mirror node) and
+  // 0.0.7162784@1788716210.213797949 (SDK TransactionId.toString()) name the
+  // same transaction with different punctuation. Both are just four numbers
+  // in order (shard, realm, account, validStartSeconds, validStartNanos) —
+  // extract the digit runs and rejoin with one consistent separator so the
+  // two formats compare equal regardless of which @/. shows up where.
+  return txId.match(/\d+/g)?.join('-') ?? txId;
+}
+
+/**
+ * The live mirror-node read and the local JSONL logs can both describe the
+ * same real settlement (e.g. provider-hedera's own paid.request log has the
+ * HTTP route the live-chain read cannot know). When both exist for the same
+ * txId, keep whichever record has more fields filled in (prefer `route`) so
+ * we get the richer JSONL data plus the live source's redeploy-survival —
+ * never double-count the same real transaction in a total.
+ */
+function dedupeByTxId(payments: UnifiedPayment[]): UnifiedPayment[] {
+  const byTxId = new Map<string, UnifiedPayment>();
+  const noTxId: UnifiedPayment[] = [];
+  for (const p of payments) {
+    if (!p.txId) {
+      noTxId.push(p);
+      continue;
+    }
+    const key = normaliseTxId(p.txId);
+    const existing = byTxId.get(key);
+    if (!existing || (!existing.route && p.route)) byTxId.set(key, p);
+  }
+  return [...byTxId.values(), ...noTxId];
 }
 
 export interface RailTotals {

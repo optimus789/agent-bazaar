@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { fixtureClient, getAgent, knownProviderFallback, StudioClient } from '@bazaar/graph';
+import { fixtureClient, getAgentWithFeedback, knownProviderFallback, StudioClient } from '@bazaar/graph';
 import type { Agent0Chain } from '@bazaar/shared';
 import { GRAPH_API_KEY, MOCK } from '@/lib/env';
 import { fetchCatalog, fetchHealth, PROVIDERS } from '@/lib/providers';
@@ -15,8 +15,9 @@ export default async function ProviderPage({ params }: { params: Promise<{ chain
   if (!VALID_CHAINS.includes(chain as Agent0Chain)) notFound();
 
   const client = MOCK || !GRAPH_API_KEY ? fixtureClient() : new StudioClient(GRAPH_API_KEY);
-  const rawListing = await getAgent(client, chain as Agent0Chain, agentId).catch(() => undefined);
-  if (!rawListing) notFound();
+  const result = await getAgentWithFeedback(client, chain as Agent0Chain, agentId).catch(() => undefined);
+  if (!result) notFound();
+  const { listing: rawListing, feedback } = result;
   // Agent0's registrationFile crawl is still stuck for our own agents (see
   // packages/graph/src/knownProviders.ts) — a listing that exists on-chain but
   // has no x402Support/rail/name yet falls back to the same data our own
@@ -126,6 +127,43 @@ export default async function ProviderPage({ params }: { params: Promise<{ chain
                     </tr>
                   );
                 })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <section>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[var(--ink-3)]">
+          On-chain feedback ({feedback.length})
+        </h2>
+        <p className="mb-3 text-xs text-[var(--ink-3)]">
+          Every review here is a real `giveFeedback` call on the ERC-8004 Reputation Registry, sourced live from the
+          Agent0 subgraph — not a local record, and unaffected by this dashboard restarting.
+        </p>
+        {feedback.length === 0 ? (
+          <Empty>No feedback recorded on-chain yet.</Empty>
+        ) : (
+          <div className="overflow-x-auto rounded-lg border border-[var(--line)]">
+            <table className="w-full min-w-[480px] border-collapse text-sm">
+              <thead>
+                <tr className="border-b border-[var(--line)] bg-[var(--surface-2)] text-left text-xs uppercase tracking-wide text-[var(--ink-3)]">
+                  <th className="px-4 py-2 font-medium">Reviewer</th>
+                  <th className="px-4 py-2 font-medium">Score</th>
+                  <th className="px-4 py-2 font-medium">Tag</th>
+                </tr>
+              </thead>
+              <tbody>
+                {feedback.map((f, i) => (
+                  <tr key={i} className="border-b border-[var(--line)] last:border-0">
+                    <td className="px-4 py-3 truncate font-mono text-xs">{f.clientAddress}</td>
+                    <td className="px-4 py-3">{f.value ?? '—'}</td>
+                    <td className="px-4 py-3 text-xs text-[var(--ink-2)]">
+                      {f.tag1 ?? '—'}
+                      {f.tag2 ? ` / ${f.tag2}` : ''}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
