@@ -79,6 +79,20 @@ export async function runAgent(task: string, deps: AgentDeps): Promise<AgentRunR
         result: toolResult.output,
       });
     }
+    // step.toolResults only carries successful calls — a thrown tool (e.g. a
+    // 502 from a provider mid-payment) lands as a 'tool-error' part in
+    // step.content instead, and would otherwise vanish from the decision log
+    // silently. The dashboard and judges need to see failures, not just wins.
+    for (const part of step.content ?? []) {
+      if (part.type === 'tool-error') {
+        await log.write({
+          step: stepIndex,
+          reasoning: step.text || undefined,
+          toolCall: { name: part.toolName, input: part.input },
+          error: part.error instanceof Error ? part.error.message : String(part.error),
+        });
+      }
+    }
   }
 
   return { finalText: result.text, ledger: ledger.status(), steps: result.steps.length };
