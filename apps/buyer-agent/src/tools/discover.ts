@@ -61,9 +61,13 @@ export function makeDiscoverTool(graph: GraphClient, fetchImpl: typeof fetch = f
       const missingOwn = AGENT0_CRAWL_FALLBACK.filter((l) => !knownIds.has(l.id));
       const listings = [...realListings, ...missingOwn];
       const hydrated = await hydrateCatalogs(listings, fetchImpl);
+      // Only surface providers this agent can actually transact with — an
+      // agent that returned no routes (offline, or not one of ours) is dead
+      // weight in the model's context on every subsequent step of the run.
+      const withRoutes = hydrated.filter((l) => l.routes.length > 0);
       const filtered = capability
-        ? hydrated.filter((l) => `${l.name} ${l.description}`.toLowerCase().includes(capability.toLowerCase()))
-        : hydrated;
+        ? withRoutes.filter((l) => `${l.name} ${l.description}`.toLowerCase().includes(capability.toLowerCase()))
+        : withRoutes;
       return { providers: filtered, count: filtered.length };
     },
   });
