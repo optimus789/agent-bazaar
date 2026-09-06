@@ -33,7 +33,10 @@ function str(v: unknown): string | undefined {
  */
 async function liveHederaPayments(): Promise<UnifiedPayment[]> {
   const health = await fetchHealth(PROVIDERS.hedera);
-  if (!health?.payTo) return [];
+  if (!health?.payTo) {
+    console.error('[liveHederaPayments] fetchHealth returned no payTo — provider unreachable or /health shape changed', { url: PROVIDERS.hedera, health });
+    return [];
+  }
   try {
     const transfers = await fetchHederaTokenTransfers(health.payTo, HEDERA_USDC_TESTNET, { limit: 50 });
     return transfers
@@ -47,8 +50,9 @@ async function liveHederaPayments(): Promise<UnifiedPayment[]> {
         txId: t.txId,
         network: 'hedera:testnet',
       }));
-  } catch {
+  } catch (err) {
     // Mirror node hiccup — fall back to the JSONL cache for this render rather than blanking the page.
+    console.error('[liveHederaPayments] fetchHederaTokenTransfers failed', { payTo: health.payTo, err: err instanceof Error ? err.message : err });
     return [];
   }
 }
