@@ -3,6 +3,7 @@ export * from './agent0.js';
 export * from './messari.js';
 export * from './fixtures.js';
 export * from './hydrate.js';
+export * from './knownProviders.js';
 export { AGENTS_QUERY, AGENT_QUERY } from './queries/agents.js';
 export { TOP_POOLS_QUERY, POOL_SNAPSHOTS_QUERY } from './queries/messari.js';
 

@@ -1,50 +1,6 @@
 import { tool } from 'ai';
 import { z } from 'zod';
-import { hydrateCatalogs, listAgents, type GraphClient } from '@bazaar/graph';
-import type { ProviderListing } from '@bazaar/shared';
-
-/**
- * TEMPORARY FALLBACK (2026-09-06): Agent0's registrationFile crawl has not
- * completed for our two just-registered agents (confirmed empty >50 min after
- * registration and after a setAgentURI re-trigger). Real discovery IS wired
- * up correctly (see listAgents/hydrateCatalogs) and DOES find our agentIds
- * on-chain — only the off-chain registrationFile crawl is delayed on The
- * Graph's side, which is what actually carries rail/baseUrl/x402Support.
- * Until that crawl completes, seed the exact same data our own registration
- * files already advertise on-chain, so the buyer agent can be exercised
- * end-to-end. Remove this once `registrationFile` resolves via the real
- * subgraph query (see docs/STATUS.md WP06 for tracking).
- */
-const AGENT0_CRAWL_FALLBACK: ProviderListing[] = [
-  {
-    id: '84532:9179',
-    chain: 'base-sepolia',
-    agentId: '9179',
-    owner: '0x66603CFFcDbF3b39785afD82F6F396a13C5C605a',
-    name: 'Bazaar Market Intel (Hedera)',
-    description: 'Sells 4 paid endpoints via x402. | rail: hedera | catalog: http://localhost:4021/catalog',
-    rail: 'hedera',
-    baseUrl: 'http://localhost:4021',
-    routes: [],
-    x402Support: true,
-    totalFeedback: 0,
-    validations: 0,
-  },
-  {
-    id: '84532:9180',
-    chain: 'base-sepolia',
-    agentId: '9180',
-    owner: '0x66603CFFcDbF3b39785afD82F6F396a13C5C605a',
-    name: 'Bazaar Task Runner (Arc)',
-    description: 'Sells 2 paid endpoints via x402. | rail: arc | catalog: http://localhost:4022/catalog',
-    rail: 'arc',
-    baseUrl: 'http://localhost:4022',
-    routes: [],
-    x402Support: true,
-    totalFeedback: 0,
-    validations: 0,
-  },
-];
+import { hydrateCatalogs, listAgents, withKnownProvidersFallback, type GraphClient } from '@bazaar/graph';
 
 export function makeDiscoverTool(graph: GraphClient, fetchImpl: typeof fetch = fetch) {
   return tool({
@@ -55,11 +11,7 @@ export function makeDiscoverTool(graph: GraphClient, fetchImpl: typeof fetch = f
     }),
     execute: async ({ capability }) => {
       const realListings = await listAgents(graph, { x402Only: true });
-      const knownIds = new Set(realListings.map((l) => l.id));
-      // Merge in our own agents only if Agent0's crawl hasn't surfaced them yet
-      // (see AGENT0_CRAWL_FALLBACK above) — real listings from the subgraph always win.
-      const missingOwn = AGENT0_CRAWL_FALLBACK.filter((l) => !knownIds.has(l.id));
-      const listings = [...realListings, ...missingOwn];
+      const listings = withKnownProvidersFallback(realListings);
       const hydrated = await hydrateCatalogs(listings, fetchImpl);
       // Only surface providers this agent can actually transact with — an
       // agent that returned no routes (offline, or not one of ours) is dead

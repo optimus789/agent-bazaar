@@ -1,4 +1,4 @@
-import { fixtureClient, hydrateCatalogs, listAgents, StudioClient } from '@bazaar/graph';
+import { fixtureClient, hydrateCatalogs, listAgents, StudioClient, withKnownProvidersFallback } from '@bazaar/graph';
 import type { ProviderListing } from '@bazaar/shared';
 import { GRAPH_API_KEY, MOCK } from './env.js';
 
@@ -16,7 +16,8 @@ export async function fetchMarketplace(): Promise<{ listings: ProviderListing[];
   }
   try {
     const client = new StudioClient(GRAPH_API_KEY);
-    const listings = await hydrateCatalogs(await listAgents(client, { x402Only: true }));
+    const realListings = await listAgents(client, { x402Only: true });
+    const listings = await hydrateCatalogs(withKnownProvidersFallback(realListings));
     return { listings, mode: 'studio' };
   } catch {
     // Discovery failing must not crash the page — fall back to fixtures so the
