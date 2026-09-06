@@ -35,6 +35,13 @@ export const EnvSchema = z.object({
   PROVIDER_HEDERA_PORT: z.coerce.number().default(4021),
   PROVIDER_ARC_PORT: z.coerce.number().default(4022),
   DASHBOARD_PORT: z.coerce.number().default(3000),
+
+  /** Optional. When set, provider-arc persists its payment ledger to Postgres
+   * instead of only in-memory, so it survives a redeploy on PaaS hosts with
+   * ephemeral container disks (see docs/STATUS.md WP12 — the reference Arc
+   * Nanopayments app does the same with Supabase/Postgres for the same
+   * reason: Circle's own API has no payment-history endpoint to fall back on). */
+  DATABASE_URL: z.string().optional(),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

@@ -4,7 +4,7 @@ import { GatewayClient } from '@circle-fin/x402-batching/client';
 import { loadEnv, requireEnv, type Env } from '@bazaar/shared';
 import { CATALOG, catalogPriceString } from './catalog.js';
 import { classifyRisk, summarise } from './tasks.js';
-import { Ledger } from './earnings.js';
+import { Ledger, PostgresLedger } from './earnings.js';
 import { createGateway, createMockGateway, type GatewayLike } from './gateway.js';
 
 export interface AppDeps {
@@ -126,9 +126,12 @@ export function createApp(deps: AppDeps): Express {
   return app;
 }
 
-export function depsFromEnv(env = loadEnv()): AppDeps {
+export async function depsFromEnv(env = loadEnv()): Promise<AppDeps> {
   const adminToken = env.SELLER_ADMIN_TOKEN;
-  const ledger = new Ledger();
+  // Postgres-backed ledger when DATABASE_URL is set (survives a PaaS
+  // redeploy — see docs/STATUS.md WP12); otherwise the zero-dependency
+  // in-memory + JSONL default, unchanged for local dev/MOCK/tests.
+  const ledger = env.DATABASE_URL ? await PostgresLedger.connect(env.DATABASE_URL) : new Ledger();
   if (env.MOCK) {
     return { env, sellerAddress: '0x2222222222222222222222222222222222222222', gateway: createMockGateway('0x2222222222222222222222222222222222222222'), ledger, adminToken };
   }
@@ -142,7 +145,7 @@ export function depsFromEnv(env = loadEnv()): AppDeps {
 const isMain = process.argv[1]?.endsWith('server.ts') || process.argv[1]?.endsWith('server.js');
 if (isMain) {
   const env = loadEnv();
-  const deps = depsFromEnv(env);
+  const deps = await depsFromEnv(env);
   const app = createApp(deps);
   // Railway/Render/Fly and most PaaS hosts assign the listen port via $PORT;
   // fall back to PROVIDER_ARC_PORT for local dev where nothing sets it.
