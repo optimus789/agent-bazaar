@@ -2,6 +2,7 @@ import { fetchHederaTokenTransfers } from '@bazaar/graph';
 import { HEDERA_USDC_TESTNET, parseUsdPrice, type Rail } from '@bazaar/shared';
 import { readJsonl, type JsonlLine } from './jsonl.js';
 import { fetchHealth, PROVIDERS } from './providers.js';
+import { Pool } from 'pg';
 
 export interface UnifiedPayment {
   ts: string;
@@ -57,19 +58,54 @@ async function liveHederaPayments(): Promise<UnifiedPayment[]> {
   }
 }
 
-/** Every JSONL source in the repo that represents a settled or attempted payment, plus live chain data where available (see docs/STATUS.md WP11). */
+let arcPaymentsPool: Pool | undefined;
+
+/**
+ * provider-arc's payment ledger is persisted to Postgres (see
+ * apps/provider-arc/src/earnings.ts PostgresLedger) specifically so it
+ * survives a redeploy of that service's own container — but that data
+ * lives in a different Railway container than this dashboard, so a plain
+ * local readJsonl('provider-arc-payments') here always came back empty
+ * (same cross-container gap WP13 fixed for the buyer's decision log,
+ * left unfixed here). Read the same table directly instead.
+ */
+async function liveArcPayments(): Promise<UnifiedPayment[]> {
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) return [];
+  try {
+    arcPaymentsPool ??= new Pool({ connectionString: databaseUrl, ssl: { rejectUnauthorized: false } });
+    const res = await arcPaymentsPool.query<{ ts: string; route: string; payer: string | null; amount_usd: number; network: string | null; transaction: string | null }>(
+      'SELECT ts, route, payer, amount_usd, network, transaction FROM provider_arc_payments ORDER BY id ASC',
+    );
+    return res.rows.map((row) => ({
+      ts: new Date(row.ts).toISOString(),
+      rail: 'arc' as const,
+      side: 'provider-arc' as const,
+      route: row.route,
+      amountUsd: row.amount_usd,
+      asset: 'USDC',
+      txId: row.transaction ?? undefined,
+      network: row.network ?? undefined,
+    }));
+  } catch (err) {
+    console.error('[liveArcPayments] failed to read provider_arc_payments', err instanceof Error ? err.message : err);
+    return [];
+  }
+}
+
+/** Every JSONL source in the repo that represents a settled or attempted payment, plus live chain/DB data where available (see docs/STATUS.md WP11). */
 export async function unifiedPayments(): Promise<UnifiedPayment[]> {
-  const [buyerHedera, buyerArc, buyerGraph, providerHedera, providerHederaReceipts, providerArc, liveHedera] = await Promise.all([
+  const [buyerHedera, buyerArc, buyerGraph, providerHedera, providerHederaReceipts, liveHedera, liveArc] = await Promise.all([
     readJsonl('buyer-agent-hedera'),
     readJsonl('arc-buyer'),
     readJsonl('buyer-agent-graph'),
     readJsonl('provider-hedera'),
     readJsonl('provider-hedera-receipts'),
-    readJsonl('provider-arc-payments'),
     liveHederaPayments(),
+    liveArcPayments(),
   ]);
 
-  const out: UnifiedPayment[] = [...liveHedera];
+  const out: UnifiedPayment[] = [...liveHedera, ...liveArc];
 
   for (const l of buyerHedera) {
     if (l.kind !== 'hedera.payment') continue;
@@ -122,10 +158,6 @@ export async function unifiedPayments(): Promise<UnifiedPayment[]> {
       displayAsset = 'HBAR (tinybars)';
     }
     out.push({ ts: l.ts, rail: 'hedera', side: 'provider-hedera', route: str(l.route), amountUsd, asset: displayAsset, txId: str(l.txId), network: str(l.network) });
-  }
-  for (const l of providerArc) {
-    if (l.kind !== 'paid.request') continue;
-    out.push({ ts: l.ts, rail: 'arc', side: 'provider-arc', route: str(l.route), amountUsd: num(l.amountUsd), asset: 'USDC', txId: str(l.transaction), network: str(l.network) });
   }
 
   return dedupeByTxId(out).sort((a, b) => a.ts.localeCompare(b.ts));
