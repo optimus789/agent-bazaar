@@ -22,7 +22,10 @@ export default async function ProviderPage({ params }: { params: Promise<{ chain
   // packages/graph/src/knownProviders.ts) — a listing that exists on-chain but
   // has no x402Support/rail/name yet falls back to the same data our own
   // registration files already advertise, rather than showing "agent 9179 · Graph".
-  const listing = rawListing.x402Support ? rawListing : (knownProviderFallback(rawListing.id) ?? rawListing);
+  // Only the fallback's identity fields are missing on rawListing — its
+  // avgScore/totalFeedback are real, live subgraph data and must not be
+  // discarded just because registrationFile hasn't crawled yet.
+  const listing = rawListing.x402Support ? rawListing : { ...(knownProviderFallback(rawListing.id) ?? rawListing), avgScore: rawListing.avgScore, totalFeedback: rawListing.totalFeedback };
 
   const baseUrl = listing.rail === 'hedera' ? PROVIDERS.hedera : listing.rail === 'arc' ? PROVIDERS.arc : listing.baseUrl;
   const [health, catalog, allPayments] = await Promise.all([fetchHealth(baseUrl), fetchCatalog(baseUrl), unifiedPayments()]);

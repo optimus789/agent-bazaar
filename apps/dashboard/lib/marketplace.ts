@@ -16,7 +16,10 @@ export async function fetchMarketplace(): Promise<{ listings: ProviderListing[];
   }
   try {
     const client = new StudioClient(GRAPH_API_KEY);
-    const realListings = await listAgents(client, { x402Only: true });
+    // Unfiltered: withKnownProvidersFallback needs our own agents even when
+    // their still-uncrawled registrationFile fails the x402Support filter,
+    // so their real reputation isn't lost — see packages/graph/src/knownProviders.ts.
+    const realListings = await listAgents(client, { x402Only: false });
     const listings = await hydrateCatalogs(withKnownProvidersFallback(realListings));
     return { listings, mode: 'studio' };
   } catch {

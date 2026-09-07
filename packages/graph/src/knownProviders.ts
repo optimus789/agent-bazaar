@@ -59,12 +59,25 @@ export const KNOWN_PROVIDERS_FALLBACK: ProviderListing[] = [
  * by id. Our own providers are surfaced first (dashboard's marketplace table
  * is otherwise ordered however the subgraph query returns it, burying the
  * two providers this whole demo actually uses among 16+ unrelated agents).
+ *
+ * `realListings` must be UNFILTERED (not run through listAgents' x402Only
+ * filter) — our own agents' registrationFile crawl is still stuck (see above),
+ * so they fail x402Support and would otherwise never reach `ours` here even
+ * though their avgScore/totalFeedback are real, live subgraph data (from
+ * ERC-8004 feedback, indexed independent of registrationFile). Losing that
+ * silently regressed reputation to "untested" after a real, verified
+ * on-chain giveFeedback call — see docs/STATUS.md WP14.
  */
 export function withKnownProvidersFallback(realListings: ProviderListing[]): ProviderListing[] {
   const knownIds = new Set(KNOWN_PROVIDERS_FALLBACK.map((l) => l.id));
-  const ours = realListings.filter((l) => knownIds.has(l.id));
+  const ours = realListings
+    .filter((l) => knownIds.has(l.id))
+    .map((l) => {
+      const fallback = KNOWN_PROVIDERS_FALLBACK.find((f) => f.id === l.id)!;
+      return l.x402Support ? l : { ...fallback, avgScore: l.avgScore, totalFeedback: l.totalFeedback };
+    });
   const missing = KNOWN_PROVIDERS_FALLBACK.filter((l) => !ours.some((r) => r.id === l.id));
-  const others = realListings.filter((l) => !knownIds.has(l.id));
+  const others = realListings.filter((l) => !knownIds.has(l.id) && l.x402Support);
   return [...ours, ...missing, ...others];
 }
 
