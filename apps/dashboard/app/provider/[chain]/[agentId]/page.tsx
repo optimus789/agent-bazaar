@@ -15,7 +15,25 @@ export default async function ProviderPage({ params }: { params: Promise<{ chain
   if (!VALID_CHAINS.includes(chain as Agent0Chain)) notFound();
 
   const client = MOCK || !GRAPH_API_KEY ? fixtureClient() : new StudioClient(GRAPH_API_KEY);
-  const result = await getAgentWithFeedback(client, chain as Agent0Chain, agentId).catch(() => undefined);
+  let result: Awaited<ReturnType<typeof getAgentWithFeedback>>;
+  let queryFailed = false;
+  try {
+    result = await getAgentWithFeedback(client, chain as Agent0Chain, agentId);
+  } catch {
+    // The eth-sepolia subgraph in particular is prone to transient
+    // "indexing_error" responses even for agents that exist and are listed
+    // on the marketplace page moments earlier — a bare notFound() here would
+    // wrongly imply the agent doesn't exist, when a retry would likely work.
+    queryFailed = true;
+  }
+  if (queryFailed) {
+    return (
+      <Empty>
+        The Graph&apos;s {chain} subgraph is temporarily unavailable for agent #{agentId} (indexer error, not a missing
+        agent). Try again shortly.
+      </Empty>
+    );
+  }
   if (!result) notFound();
   const { listing: rawListing, feedback } = result;
   // Agent0's registrationFile crawl is still stuck for our own agents (see
