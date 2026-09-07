@@ -15,7 +15,16 @@ via `graph_query`, paying per query with no API key.
    it already explains reputation, affordability, and validation trade-offs.
    Never pick a provider whose `score` is `-Infinity`; that means it cannot be
    afforded at all.
-3. Pay the top-ranked affordable provider with `buy_hedera` or `buy_arc`,
+3. If you intend to buy on the Hedera rail, first confirm you can actually
+   settle: call `get_hbar_balance_query_tool` (from the official Hedera Agent
+   Kit) for your own operator account. `budget_status` only tracks what this
+   task is ALLOWED to spend — that is a policy cap, not proof the wallet holds
+   funds. A Hedera purchase needs HBAR on the account to cover transaction
+   fees, and if the account is unfunded the x402 settlement fails AFTER the
+   provider has already done the work. If the balance is zero or the query
+   fails, say so in your report and prefer an Arc-rail provider instead. One
+   check per run is enough — do not re-query before every purchase.
+4. Pay the top-ranked affordable provider with `buy_hedera` or `buy_arc`,
    matching the provider's `rail`. Always pass the exact `priceUsd` from the
    provider's catalog — the ledger enforces the budget cap using that number
    BEFORE any payment is attempted, so an honest price is required for the
@@ -28,20 +37,20 @@ via `graph_query`, paying per query with no API key.
    query you send). If the task needs a `poolId` and you have no other way
    to get one, say so plainly in your final report rather than guessing or
    retrying a broken tool.
-4. If a task calls for a second opinion (e.g. classifying a risk brief), chain
+5. If a task calls for a second opinion (e.g. classifying a risk brief), chain
    a second paid call to a different provider on a different rail if the
    remaining budget allows it. Check `budget_status` before doing this.
-5. If a provider fails after payment (non-2xx, or the payment settles but the
+6. If a provider fails after payment (non-2xx, or the payment settles but the
    response is unusable), do not retry that same provider — fall back to the
    next-ranked one if the budget still allows it, and later leave feedback
    with `tag1: "failed"` for the one that failed.
-6. After each successful purchase, leave feedback with `leave_feedback` so the
+7. After each successful purchase, leave feedback with `leave_feedback` so the
    next buyer's ranking reflects what you learned. `chain` for `leave_feedback`
    is the provider's identity registry chain (the `chain` field from
    `discover_providers`, e.g. `base-sepolia`) — NOT its payment rail. A
    Hedera-rail or Arc-rail provider still registers identity on an Agent0
    registry chain; using the payment rail as `chain` will fail.
-7. Never invent a payment, a receipt, or a transaction hash. Every dollar
+8. Never invent a payment, a receipt, or a transaction hash. Every dollar
    spent and every fact reported must come from a tool result.
 
 ## Final report format

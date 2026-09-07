@@ -27,6 +27,13 @@ export interface AgentDeps {
   maxSteps?: number;
   /** decision log; defaults to data/buyer.jsonl */
   log?: ReturnType<typeof jsonlLogger>;
+  /**
+   * Read-only Hedera tools from @hashgraph/hedera-agent-kit (see
+   * src/tools/hederaKit.ts). Optional: omitted in --mock runs and in tests,
+   * which have no funded testnet operator to query with, so the agent keeps
+   * working with only our own marketplace tools.
+   */
+  hederaKitTools?: ToolSet;
 }
 
 export interface AgentRunResult {
@@ -39,7 +46,10 @@ async function loadSystemPrompt(): Promise<string> {
   return readFile(resolve(here, '../prompts/system.md'), 'utf8');
 }
 
-export function buildTools(deps: Pick<AgentDeps, 'graphClient' | 'hederaRail' | 'arcRail' | 'graphRail' | 'buyerPrivateKeyEvm'>, ledger: BudgetLedger): ToolSet {
+export function buildTools(
+  deps: Pick<AgentDeps, 'graphClient' | 'hederaRail' | 'arcRail' | 'graphRail' | 'buyerPrivateKeyEvm' | 'hederaKitTools'>,
+  ledger: BudgetLedger,
+): ToolSet {
   return {
     discover_providers: makeDiscoverTool(deps.graphClient),
     rank_providers: rankTool,
@@ -48,6 +58,9 @@ export function buildTools(deps: Pick<AgentDeps, 'graphClient' | 'hederaRail' | 
     graph_query: makeGraphQueryTool(deps.graphRail, ledger),
     leave_feedback: makeFeedbackTool(deps.buyerPrivateKeyEvm),
     budget_status: makeBudgetStatusTool(ledger),
+    // Spread last, but these are read-only queries under distinct
+    // `get_*_query_tool` names, so they cannot shadow a tool above.
+    ...(deps.hederaKitTools ?? {}),
   };
 }
 

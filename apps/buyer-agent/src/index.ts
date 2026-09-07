@@ -9,6 +9,7 @@ import { modelFromEnv } from './model.js';
 import { makeHederaRail } from './rails/hedera.js';
 import { makeArcRail } from './rails/arc.js';
 import { makeGraphRail } from './rails/graph.js';
+import { makeHederaKitTools } from './tools/hederaKit.js';
 import { makeMockArcRail, makeMockGraphRail, makeMockHederaRail } from './mockRails.js';
 
 const MOCK_BUYER_EVM_KEY = '0x0000000000000000000000000000000000000000000000000000000000000001' as const;
@@ -45,6 +46,13 @@ async function main() {
   const graphRail = env.MOCK ? makeMockGraphRail(graphClient) : makeGraphRail({ privateKey: requireEvmKey(env), env: env.X402_ENV });
   const buyerPrivateKeyEvm = env.MOCK ? MOCK_BUYER_EVM_KEY : requireEvmKey(env);
 
+  // Official @hashgraph/hedera-agent-kit, read-only account queries only, so
+  // the agent can verify its own on-chain balance before committing to a
+  // purchase instead of trusting the internal ledger alone. Skipped in --mock
+  // (no funded operator to query with). See src/tools/hederaKit.ts for why
+  // only the query plugin is registered.
+  const hederaKit = env.MOCK ? undefined : makeHederaKitTools({ accountId: requireHederaAccount(env), privateKeyEcdsaHex: requireHederaKey(env) });
+
   // Postgres-backed decision log when DATABASE_URL is set — a Railway-run
   // buyer-agent is its own container with its own disk, invisible to the
   // dashboard service's local data/buyer.jsonl; sharing one Postgres table
@@ -53,7 +61,14 @@ async function main() {
   const pgLog = env.DATABASE_URL ? await PostgresJsonlLog.connect(env.DATABASE_URL) : undefined;
   const log = jsonlLoggerWithPostgres('buyer', pgLog);
 
-  const result = await runAgent(task, { model, graphClient, hederaRail, arcRail, graphRail, buyerPrivateKeyEvm, budgetUsd: budget, log });
+  let result: Awaited<ReturnType<typeof runAgent>>;
+  try {
+    result = await runAgent(task, { model, graphClient, hederaRail, arcRail, graphRail, buyerPrivateKeyEvm, budgetUsd: budget, log, hederaKitTools: hederaKit?.tools });
+  } finally {
+    // The kit's SDK Client holds open gRPC connections; without closing it the
+    // CLI hangs after printing the report instead of exiting.
+    hederaKit?.close();
+  }
 
   console.log(result.finalText);
   console.log(`\nbudget: spent $${result.ledger.spentUsd.toFixed(6)} of $${result.ledger.budgetUsd.toFixed(6)} (${result.steps} steps)`);
