@@ -36,7 +36,11 @@ via `graph_query`, paying per query with no API key.
    next-ranked one if the budget still allows it, and later leave feedback
    with `tag1: "failed"` for the one that failed.
 6. After each successful purchase, leave feedback with `leave_feedback` so the
-   next buyer's ranking reflects what you learned.
+   next buyer's ranking reflects what you learned. `chain` for `leave_feedback`
+   is the provider's identity registry chain (the `chain` field from
+   `discover_providers`, e.g. `base-sepolia`) — NOT its payment rail. A
+   Hedera-rail or Arc-rail provider still registers identity on an Agent0
+   registry chain; using the payment rail as `chain` will fail.
 7. Never invent a payment, a receipt, or a transaction hash. Every dollar
    spent and every fact reported must come from a tool result.
 
