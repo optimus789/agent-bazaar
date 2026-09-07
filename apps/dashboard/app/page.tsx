@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { fetchMarketplace } from '@/lib/marketplace';
 import { fetchHealth, PROVIDERS } from '@/lib/providers';
 import { Card, Empty, formatUsd, RailBadge, StatusDot } from './components';
+import { OtherAgentsTable } from './other-agents-table';
 
 export const revalidate = 0;
 
@@ -119,7 +120,7 @@ export default async function MarketplacePage() {
             Not ours — these are unrelated agents other builders registered on the same public Agent0 subgraph. Shown to
             prove discovery is a real, open query, not a hardcoded list of 2.
           </p>
-          <ProvidersTable listings={otherListings} muted />
+          <OtherAgentsTable listings={otherListings} />
         </section>
       )}
 
@@ -134,15 +135,13 @@ export default async function MarketplacePage() {
 function ProvidersTable({
   listings,
   emptyMessage,
-  muted,
 }: {
   listings: Awaited<ReturnType<typeof fetchMarketplace>>['listings'];
   emptyMessage?: string;
-  muted?: boolean;
 }) {
   if (listings.length === 0) return emptyMessage ? <Empty>{emptyMessage}</Empty> : null;
   return (
-    <div className={`overflow-x-auto rounded-lg border border-[var(--line)] ${muted ? 'opacity-70' : ''}`}>
+    <div className="overflow-x-auto rounded-lg border border-[var(--line)]">
       <table className="w-full min-w-[720px] border-collapse text-sm">
         <thead>
           <tr className="border-b border-[var(--line)] bg-[var(--surface-2)] text-left text-xs uppercase tracking-wide text-[var(--ink-3)]">
