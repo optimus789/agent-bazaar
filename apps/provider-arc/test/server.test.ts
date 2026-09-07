@@ -58,7 +58,7 @@ describe('provider-arc HTTP surface', () => {
     expect(res.body.summary).toBe('hello world');
     const snapshot = deps.ledger.snapshot();
     expect(snapshot.totalPayments).toBe(1);
-    expect(snapshot.totalUsd).toBeCloseTo(0.001);
+    expect(snapshot.totalUsd).toBeCloseTo(1);
     expect(snapshot.recent[0]?.route).toBe('POST /v1/task/summarise');
   });
 

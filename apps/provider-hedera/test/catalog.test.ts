@@ -9,7 +9,7 @@ describe('catalog', () => {
   });
   it('quotes the HBAR route in tinybars', () => {
     const r = findRoute('POST', '/v1/hbar/brief/pool');
-    expect(r?.altPrice).toEqual({ asset: '0.0.0', amount: '2000000' });
-    expect(catalogPriceString(r!)).toBe('$0.002');
+    expect(r?.altPrice).toEqual({ asset: '0.0.0', amount: '1000000000' });
+    expect(catalogPriceString(r!)).toBe('$1');
   });
 });

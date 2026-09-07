@@ -9,7 +9,7 @@ describe('catalog', () => {
   });
   it('quotes prices as $-strings', () => {
     const r = findRoute('POST', '/v1/task/summarise');
-    expect(catalogPriceString(r!)).toBe('$0.001');
+    expect(catalogPriceString(r!)).toBe('$1');
   });
   it('findRoute returns undefined for unknown routes', () => {
     expect(findRoute('GET', '/nope')).toBeUndefined();

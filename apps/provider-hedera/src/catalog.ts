@@ -5,16 +5,16 @@ import { hbarPrice, usdPrice, type CatalogRoute, type UsdPrice } from '@bazaar/s
  * GET /catalog, and the ERC-8004 registration file (WP04).
  */
 export const PRICES = {
-  poolBrief: 0.002,
-  poolBriefDeep: 0.01,
-  tokenBrief: 0.002,
-  agentLookup: 0.0005,
+  poolBrief: 1,
+  poolBriefDeep: 2,
+  tokenBrief: 1,
+  agentLookup: 0.5,
 } as const;
 
 /** HBAR equivalents used on the /hbar routes; roughly $0.10/HBAR at time of writing. */
 export const HBAR_PRICES = {
-  poolBrief: 0.02,
-  poolBriefDeep: 0.1,
+  poolBrief: 10,
+  poolBriefDeep: 20,
 } as const;
 
 export const CATALOG: CatalogRoute[] = [

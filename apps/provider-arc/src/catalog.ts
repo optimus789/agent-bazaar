@@ -1,8 +1,8 @@
 import { usdPrice, type CatalogRoute, type UsdPrice } from '@bazaar/shared';
 
 export const PRICES = {
-  summarise: 0.001,
-  classifyRisk: 0.0005,
+  summarise: 1,
+  classifyRisk: 0.5,
 } as const;
 
 export const CATALOG: CatalogRoute[] = [
