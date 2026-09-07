@@ -2,9 +2,15 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Nav } from './nav';
 
+const title = 'Agent Bazaar';
+const description = 'An AI buyer agent that shops a live marketplace on its own — discovers paid APIs, pays with real testnet crypto, and leaves an on-chain review.';
+
 export const metadata: Metadata = {
-  title: 'Agent Bazaar',
-  description: 'Marketplace, payments, and live agent decisions for the Agent Bazaar demo.',
+  metadataBase: new URL(process.env.RAILWAY_PUBLIC_DOMAIN ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` : 'http://localhost:3000'),
+  title,
+  description,
+  openGraph: { title, description, type: 'website' },
+  twitter: { card: 'summary_large_image', title, description },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
