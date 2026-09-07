@@ -54,11 +54,18 @@ export const KNOWN_PROVIDERS_FALLBACK: ProviderListing[] = [
   },
 ];
 
-/** Merge real subgraph listings with the fallback, real listings always winning by id. */
+/**
+ * Merge real subgraph listings with the fallback, real listings always winning
+ * by id. Our own providers are surfaced first (dashboard's marketplace table
+ * is otherwise ordered however the subgraph query returns it, burying the
+ * two providers this whole demo actually uses among 16+ unrelated agents).
+ */
 export function withKnownProvidersFallback(realListings: ProviderListing[]): ProviderListing[] {
-  const knownIds = new Set(realListings.map((l) => l.id));
-  const missing = KNOWN_PROVIDERS_FALLBACK.filter((l) => !knownIds.has(l.id));
-  return [...realListings, ...missing];
+  const knownIds = new Set(KNOWN_PROVIDERS_FALLBACK.map((l) => l.id));
+  const ours = realListings.filter((l) => knownIds.has(l.id));
+  const missing = KNOWN_PROVIDERS_FALLBACK.filter((l) => !ours.some((r) => r.id === l.id));
+  const others = realListings.filter((l) => !knownIds.has(l.id));
+  return [...ours, ...missing, ...others];
 }
 
 /** Single-listing counterpart to withKnownProvidersFallback, for pages that fetch one agent by id. */
