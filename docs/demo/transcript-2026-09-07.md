@@ -1,56 +1,45 @@
 # Buyer agent transcript
 
-**Task:** Find the Hedera provider that sells market intelligence. Look up the reputation of agent 9180 (the Arc provider) via the agent lookup endpoint, then leave feedback for this purchase.
-**Budget:** $2
+**Task:** Just discover providers and report their reputation scores. Do not buy anything.
+**Budget:** $0.02
 
 ## Final report
 
----
+## Provider Discovery Report
 
-## Final Report
+I found **2 providers** available on the Agent Bazaar marketplace. Here are their reputation scores:
 
-**Providers considered:**
-- **Agent 9179** "Bazaar Market Intel (Hedera)" — Hedera rail, market intelligence provider with 4 endpoints including pool briefs and agent lookup. Selected for lookup capability.
-- **Agent 9180** "Bazaar Task Runner (Arc)" — Arc rail, task runner provider (target of lookup).
-
-**Purchases made:**
-- **Provider**: Agent 9179 (Bazaar Market Intel, Hedera)
-- **Rail**: Hedera (USDC)
-- **Price**: $0.50
-- **Endpoint**: `POST /v1/usdc/lookup/agent`
-- **Transaction**: `0.0.7162784@1788785193.821942030`
-- **Explorer**: https://hashscan.io/testnet/transaction/0.0.7162784@1788785193.821942030
-
-**Answer to the task:**
-Agent 9180's reputation lookup returned:
-- **ID**: 84532:9180
-- **Name**: agent 9180
-- **Owner**: 0x66603cffcdbf3b39785afd82f6f396a13c5c605a
-- **Total Feedback**: 4 ratings
-- **Average Score**: 86.25 / 100
+### 1. **Bazaar Task Runner (Arc)**
+- **Chain**: Base Sepolia
+- **Rail**: Arc (Circle Gateway nanopayments)
+- **Agent ID**: 9180
+- **Reputation Score**: 86.25 / 100
+- **Feedback Count**: 4
 - **Validations**: 0
-- **Verdict**: **Trusted**
-- **Original Rail**: Graph
+- **Services**:
+  - POST `/v1/task/summarise` — $1.00 (Summarise arbitrary text)
+  - POST `/v1/task/classify-risk` — $0.50 (Classify a risk brief)
 
-Feedback successfully posted (tx: `0x63a7ac676a2be1f2249bd7ced11502d9ce0a5ff235b9c729f5a68c364eeef43f`) with a score of 90/100 for the successful agent lookup service.
+### 2. **Bazaar Market Intel (Hedera)**
+- **Chain**: Base Sepolia
+- **Rail**: Hedera (Blocky402 settlement)
+- **Agent ID**: 9179
+- **Reputation Score**: 67 / 100
+- **Feedback Count**: 5
+- **Validations**: 0
+- **Services**:
+  - POST `/v1/usdc/brief/pool` — $1.00 (Risk/opportunity brief for a DEX pool)
+  - POST `/v1/hbar/brief/pool` — $1.00 (Same brief, paid in HBAR)
+  - POST `/v1/usdc/brief/pool/deep` — $2.00 (Deep brief over 30 daily snapshots)
+  - POST `/v1/usdc/lookup/agent` — $0.50 (Reputation summary of an ERC-8004 agent)
 
-**Budget**: $0.50 spent / $1.50 remaining out of $2.00 total.
+**Summary**: The Arc-based task runner has a stronger reputation score (86.25) with fewer but higher-quality feedback signals, while the Hedera market intel provider has a lower score (67) despite more feedback count. Both operate on Base Sepolia but use different payment rails.
 
 ## Ledger
 
 {
-  "budgetUsd": 2,
-  "spentUsd": 0.5,
-  "remainingUsd": 1.5,
-  "receipts": [
-    {
-      "rail": "hedera",
-      "chain": "hedera-testnet",
-      "amountUsd": 0.5,
-      "asset": "USDC",
-      "txId": "0.0.7162784@1788785193.821942030",
-      "url": "https://provider-hedera-production.up.railway.app/v1/usdc/lookup/agent",
-      "ts": "2026-09-07T12:46:43.156Z"
-    }
-  ]
+  "budgetUsd": 0.02,
+  "spentUsd": 0,
+  "remainingUsd": 0.02,
+  "receipts": []
 }

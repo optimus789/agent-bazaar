@@ -10,7 +10,11 @@ export function makeDiscoverTool(graph: GraphClient, fetchImpl: typeof fetch = f
       capability: z.string().optional().describe('optional free-text filter, e.g. "risk brief" or "summarise" — matched against provider name/description'),
     }),
     execute: async ({ capability }) => {
-      const realListings = await listAgents(graph, { x402Only: true });
+      // Unfiltered: withKnownProvidersFallback needs our own agents even when
+      // their still-uncrawled registrationFile fails the x402Support filter,
+      // so their real avgScore/totalFeedback isn't lost — same fix as the
+      // dashboard's fetchMarketplace, see packages/graph/src/knownProviders.ts.
+      const realListings = await listAgents(graph, { x402Only: false });
       const listings = withKnownProvidersFallback(realListings);
       const hydrated = await hydrateCatalogs(listings, fetchImpl);
       // Only surface providers this agent can actually transact with — an
