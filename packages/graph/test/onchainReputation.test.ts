@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const readContract = vi.fn();
 const getLogs = vi.fn();
@@ -9,12 +9,17 @@ vi.mock('viem', async (importOriginal) => ({
   createPublicClient: () => ({ readContract, getLogs, getBlockNumber }),
 }));
 
-const { readOnchainReputation } = await import('../src/onchainReputation.js');
+const { readOnchainReputation, __clearOnchainReputationCache } = await import('../src/onchainReputation.js');
 
 describe('readOnchainReputation', () => {
+  beforeEach(() => {
+    __clearOnchainReputationCache();
+    readContract.mockReset();
+    getLogs.mockReset();
+  });
+
   it('reports no feedback without calling getSummary when the agent has none', async () => {
     getLogs.mockResolvedValue([]);
-    readContract.mockClear();
 
     const res = await readOnchainReputation('base-sepolia', '9179');
 
@@ -45,5 +50,18 @@ describe('readOnchainReputation', () => {
     readContract.mockResolvedValue([2n, 8625n, 2]);
 
     await expect(readOnchainReputation('base-sepolia', '9180')).resolves.toEqual({ totalFeedback: 2, avgScore: 86.25 });
+  });
+
+  it('serves the cached value instead of re-scanning on a repeat read', async () => {
+    getLogs.mockResolvedValue([{ args: { clientAddress: '0xf580357a000000000000000000000000000000aa' } }]);
+    readContract.mockResolvedValue([6n, 70n, 0]);
+
+    const first = await readOnchainReputation('base-sepolia', '9179');
+    const callsAfterFirst = getLogs.mock.calls.length;
+    const second = await readOnchainReputation('base-sepolia', '9179');
+
+    expect(second).toEqual(first);
+    // The scan is ~22 RPC round-trips; a cache hit must not repeat any of them.
+    expect(getLogs.mock.calls.length).toBe(callsAfterFirst);
   });
 });

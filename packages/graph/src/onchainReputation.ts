@@ -47,6 +47,20 @@ const GET_SUMMARY_ABI = [
  */
 const CHUNK = 9_500n;
 const SCAN_BLOCKS = 200_000n;
+/** In-flight getLogs cap — see the rate-limit note in the scan below. */
+const SCAN_CONCURRENCY = 6;
+
+/**
+ * Reputation only changes when a buyer completes a purchase and posts
+ * feedback — a handful of times a day at most — but the scan above costs ~22
+ * sequential RPC round-trips (~6s measured live). Re-running that on every
+ * page render made the marketplace take ~4s to load. Cache per agent and
+ * serve the cached value until it expires; a stale-by-minutes score is a far
+ * better trade than a multi-second page load, and this path only runs at all
+ * when the subgraph is already down.
+ */
+const CACHE_TTL_MS = 5 * 60_000;
+const cache = new Map<string, { at: number; value: OnchainReputation }>();
 
 export interface OnchainReputation {
   totalFeedback: number;
@@ -67,18 +81,35 @@ function clientFor(chain: Agent0Chain): PublicClient {
  * registry weights/normalises values rather than re-implementing that here.
  */
 export async function readOnchainReputation(chain: Agent0Chain, agentId: string | number): Promise<OnchainReputation> {
+  const cacheKey = `${chain}:${agentId}`;
+  const hit = cache.get(cacheKey);
+  if (hit && Date.now() - hit.at < CACHE_TTL_MS) return hit.value;
+
   const client = clientFor(chain);
   const id = BigInt(agentId);
   const latest = await client.getBlockNumber();
 
-  const clients = new Set<string>();
+  // The chunks are independent, so issue them concurrently rather than in the
+  // sequential loop this started as — measured live that loop cost ~5.9s per
+  // agent, versus ~310ms fully parallel. Fully parallel is too aggressive
+  // though: 22 simultaneous calls repeated across both agents trips
+  // sepolia.base.org's `over rate limit` (-32016). Cap the in-flight count so
+  // the scan stays fast without getting throttled.
   const floor = latest > SCAN_BLOCKS ? latest - SCAN_BLOCKS : 0n;
+  const ranges: { from: bigint; to: bigint }[] = [];
   for (let end = latest; end > floor; end -= CHUNK) {
-    const from = end - CHUNK + 1n > floor ? end - CHUNK + 1n : floor;
-    const logs = await client.getLogs({ address: ERC8004_REPUTATION_REGISTRY, event: NEW_FEEDBACK, args: { agentId: id }, fromBlock: from, toBlock: end });
-    for (const l of logs) if (l.args.clientAddress) clients.add(l.args.clientAddress);
+    ranges.push({ from: end - CHUNK + 1n > floor ? end - CHUNK + 1n : floor, to: end });
   }
-  if (clients.size === 0) return { totalFeedback: 0 };
+  const clients = new Set<string>();
+  for (let i = 0; i < ranges.length; i += SCAN_CONCURRENCY) {
+    const batches = await Promise.all(
+      ranges.slice(i, i + SCAN_CONCURRENCY).map((r) =>
+        client.getLogs({ address: ERC8004_REPUTATION_REGISTRY, event: NEW_FEEDBACK, args: { agentId: id }, fromBlock: r.from, toBlock: r.to }),
+      ),
+    );
+    for (const logs of batches) for (const l of logs) if (l.args.clientAddress) clients.add(l.args.clientAddress);
+  }
+  if (clients.size === 0) return cached(cacheKey, { totalFeedback: 0 });
 
   const [count, aggregate, decimals] = await client.readContract({
     address: ERC8004_REPUTATION_REGISTRY,
@@ -88,6 +119,16 @@ export async function readOnchainReputation(chain: Agent0Chain, agentId: string 
   });
 
   const total = Number(count);
-  if (total === 0) return { totalFeedback: 0 };
-  return { totalFeedback: total, avgScore: Number(aggregate) / 10 ** Number(decimals) };
+  if (total === 0) return cached(cacheKey, { totalFeedback: 0 });
+  return cached(cacheKey, { totalFeedback: total, avgScore: Number(aggregate) / 10 ** Number(decimals) });
+}
+
+/** Test seam: drops the memo so cases can exercise a cold read independently. */
+export function __clearOnchainReputationCache(): void {
+  cache.clear();
+}
+
+function cached(key: string, value: OnchainReputation): OnchainReputation {
+  cache.set(key, { at: Date.now(), value });
+  return value;
 }
