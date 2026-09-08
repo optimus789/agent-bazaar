@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
-import { fixtureClient, getAgentWithFeedback, knownProviderFallback, StudioClient } from '@bazaar/graph';
-import type { Agent0Chain } from '@bazaar/shared';
+import { fixtureClient, getAgentWithFeedback, knownProviderFallback, readOnchainReputation, StudioClient } from '@bazaar/graph';
+import { CHAIN_IDS, type Agent0Chain, type ProviderListing } from '@bazaar/shared';
 import { GRAPH_API_KEY, MOCK } from '@/lib/env';
 import { fetchCatalog, fetchHealth, PROVIDERS } from '@/lib/providers';
 import { unifiedPayments, explorerUrlFor } from '@/lib/payments';
@@ -26,16 +26,36 @@ export default async function ProviderPage({ params }: { params: Promise<{ chain
     // wrongly imply the agent doesn't exist, when a retry would likely work.
     queryFailed = true;
   }
-  if (queryFailed) {
-    return (
-      <Empty>
-        The Graph&apos;s {chain} subgraph is temporarily unavailable for agent #{agentId} (indexer error, not a missing
-        agent). Try again shortly.
-      </Empty>
-    );
-  }
-  if (!result) notFound();
-  const { listing: rawListing, feedback } = result;
+  // The subgraph is only an index of the ERC-8004 registries, and it can go
+  // dark independently of the chain (2026-09-08: the sole base-sepolia indexer
+  // went offline, blanking this page entirely). For our own agents the identity
+  // is known statically and reputation is readable straight from the contract,
+  // so render the real page from chain data instead of an apology. `degraded`
+  // drives the banner explaining why the per-review list is empty.
+  let degraded = false;
+  let listing: ProviderListing;
+  let feedback: NonNullable<Awaited<ReturnType<typeof getAgentWithFeedback>>>['feedback'];
+
+  if (queryFailed || !result) {
+    const fallback = knownProviderFallback(`${CHAIN_IDS[chain as Agent0Chain]}:${agentId}`);
+    if (!fallback) {
+      if (queryFailed) {
+        return (
+          <Empty>
+            The Graph&apos;s {chain} subgraph is temporarily unavailable for agent #{agentId} (indexer error, not a
+            missing agent). Try again shortly.
+          </Empty>
+        );
+      }
+      notFound();
+    }
+    const onchain = await readOnchainReputation(chain as Agent0Chain, agentId).catch(() => ({ totalFeedback: 0, avgScore: undefined }));
+    degraded = true;
+    listing = { ...fallback, totalFeedback: onchain.totalFeedback, avgScore: onchain.avgScore };
+    feedback = [];
+  } else {
+    const { listing: rawListing, feedback: subgraphFeedback } = result;
+    feedback = subgraphFeedback;
   // Agent0's registrationFile crawl is still stuck for our own agents (see
   // packages/graph/src/knownProviders.ts) — a listing that exists on-chain but
   // has no x402Support/rail/name yet falls back to the same data our own
@@ -43,7 +63,8 @@ export default async function ProviderPage({ params }: { params: Promise<{ chain
   // Only the fallback's identity fields are missing on rawListing — its
   // avgScore/totalFeedback are real, live subgraph data and must not be
   // discarded just because registrationFile hasn't crawled yet.
-  const listing = rawListing.x402Support ? rawListing : { ...(knownProviderFallback(rawListing.id) ?? rawListing), avgScore: rawListing.avgScore, totalFeedback: rawListing.totalFeedback };
+    listing = rawListing.x402Support ? rawListing : { ...(knownProviderFallback(rawListing.id) ?? rawListing), avgScore: rawListing.avgScore, totalFeedback: rawListing.totalFeedback };
+  }
 
   const baseUrl = listing.rail === 'hedera' ? PROVIDERS.hedera : listing.rail === 'arc' ? PROVIDERS.arc : listing.baseUrl;
   const [health, catalog, allPayments] = await Promise.all([fetchHealth(baseUrl), fetchCatalog(baseUrl), unifiedPayments()]);
@@ -162,6 +183,13 @@ export default async function ProviderPage({ params }: { params: Promise<{ chain
           Every review here is a real `giveFeedback` call on the ERC-8004 Reputation Registry, sourced live from the
           Agent0 subgraph — not a local record, and unaffected by this dashboard restarting.
         </p>
+        {degraded ? (
+          <p className="mb-3 rounded-lg border border-[var(--line)] bg-[var(--surface-2)] px-4 py-3 text-xs text-[var(--ink-2)]">
+            The Graph&apos;s {chain} subgraph is temporarily unavailable, so the individual reviews below cannot be
+            listed. The reputation above was read directly from the ERC-8004 Reputation Registry contract instead — the
+            subgraph only indexes that contract, so the score is the same real on-chain data.
+          </p>
+        ) : null}
         {feedback.length === 0 ? (
           <Empty>No feedback recorded on-chain yet.</Empty>
         ) : (
