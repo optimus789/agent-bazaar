@@ -23,7 +23,18 @@ export default async function MarketplacePage() {
   return (
     <div className="flex flex-col gap-8">
       <section>
-        <h1 className="text-2xl font-semibold tracking-tight">Agent Bazaar</h1>
+        <div className="flex items-center gap-3">
+          {/* eslint-disable-next-line @next/next/no-img-element -- animated GIF;
+              next/image would need unoptimized anyway and this is a fixed 40px mark */}
+          <img
+            src="/logo-animated.gif"
+            alt=""
+            width={40}
+            height={40}
+            className="h-10 w-10 shrink-0 rounded-lg"
+          />
+          <h1 className="text-2xl font-semibold tracking-tight">Agent Bazaar</h1>
+        </div>
         <p className="mt-1 max-w-2xl text-sm text-[var(--ink-2)]">
           An AI buyer agent that shops a live marketplace on its own: it discovers paid APIs, decides which one is worth
           the money, pays for it with real testnet crypto, and leaves an on-chain review — no human clicking anything.
