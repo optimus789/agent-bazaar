@@ -16,3 +16,10 @@ PLAN.md
 plans/
 docs/research/
 git-history.md
+
+# Demo scripts — working notes for recording, not part of the deliverable.
+# Kept locally (still needed to record the video), untracked on purpose.
+docs/demo/nscript.md
+docs/demo/script.md
+# Ad-hoc answer dumps for check-in / submission forms.
+checkin-answers.md
